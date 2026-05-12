@@ -1240,7 +1240,39 @@ function makeSelectable(){
   });
 }
 
-function selectElement(el){
+let multiSelected = []; // 複数選択中の要素
+
+function selectElement(el, additive){
+  // Shift押下時：追加選択モード
+  if(additive){
+    if(multiSelected.includes(el)){
+      // すでに選択済み → 解除
+      el.classList.remove('is-selected');
+      multiSelected = multiSelected.filter(x=>x!==el);
+    }else{
+      // 追加
+      multiSelected.push(el);
+      el.classList.add('is-selected');
+    }
+    if(multiSelected.length > 1){
+      buildMultiPanel();
+      if(window.innerWidth <= 1024){
+        document.getElementById('dock').classList.add('is-shown');
+        document.getElementById('dock-backdrop').classList.add('is-shown');
+      }
+      return;
+    }else if(multiSelected.length === 1){
+      el = multiSelected[0];
+    }else{
+      deselectAll();
+      return;
+    }
+  }else{
+    // 通常クリック：単独選択
+    multiSelected.forEach(e=>e.classList.remove('is-selected'));
+    multiSelected = [el];
+  }
+  
   if(selectedElement && selectedElement !== el){
     selectedElement.classList.remove('is-selected');
   }
@@ -1253,7 +1285,66 @@ function selectElement(el){
   }
 }
 
+function buildMultiPanel(){
+  document.getElementById('dock-title').textContent = `🔘 複数選択中 (${multiSelected.length}個)`;
+  document.getElementById('dock-subtitle').textContent = 'すべてに同じ操作';
+  const body = document.getElementById('dock-body');
+  body.innerHTML = `
+    <div class="prop-group">
+      <label class="prop-label">位置を一斉に動かす</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-width:180px;margin:0 auto">
+        <div></div>
+        <button class="prop-btn" data-gmove="up">⬆</button>
+        <div></div>
+        <button class="prop-btn" data-gmove="left">⬅</button>
+        <button class="prop-btn" data-gmove="center">⊙</button>
+        <button class="prop-btn" data-gmove="right">➡</button>
+        <div></div>
+        <button class="prop-btn" data-gmove="down">⬇</button>
+        <div></div>
+      </div>
+      <div style="display:flex;gap:5px;justify-content:center;margin-top:10px">
+        <button class="prop-btn" data-gstep="1">1px</button>
+        <button class="prop-btn is-active" data-gstep="10">10px</button>
+        <button class="prop-btn" data-gstep="50">50px</button>
+      </div>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">サイズを一斉に</label>
+      <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px">
+        <button class="prop-btn" data-gsize="smaller">− 縮小</button>
+        <button class="prop-btn" data-gsize="larger">+ 拡大</button>
+      </div>
+    </div>
+    <div class="prop-group">
+      <button class="prop-btn-full" id="multi-deselect">選択を解除</button>
+    </div>
+  `;
+  
+  let gstep = 10;
+  body.querySelectorAll('[data-gstep]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      gstep = parseInt(b.dataset.gstep);
+      body.querySelectorAll('[data-gstep]').forEach(x=>x.classList.remove('is-active'));
+      b.classList.add('is-active');
+    });
+  });
+  body.querySelectorAll('[data-gmove]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      multiSelected.forEach(el=>moveElement(el, b.dataset.gmove, gstep));
+    });
+  });
+  body.querySelectorAll('[data-gsize]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      multiSelected.forEach(el=>resizeElement(el, b.dataset.gsize));
+    });
+  });
+  document.getElementById('multi-deselect')?.addEventListener('click', deselectAll);
+}
+
 function deselectAll(){
+  multiSelected.forEach(e=>e.classList.remove('is-selected'));
+  multiSelected = [];
   if(selectedElement){
     selectedElement.classList.remove('is-selected');
     selectedElement = null;
@@ -1422,7 +1513,25 @@ function buildPropertiesPanel(el){
   const rotMatch = transform.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
   if(rotMatch) curRot = parseFloat(rotMatch[1]);
   body.appendChild(makeGroup('回転', curRot+'°', `
-    <input type="range" class="prop-range" id="prop-rotation" min="-180" max="180" value="${curRot}">`));
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="range" class="prop-range" id="prop-rotation" min="-180" max="180" value="${curRot}" style="flex:1">
+      <button class="prop-btn" data-action="rotation-reset" title="0°に戻す" style="padding:4px 9px">↺</button>
+    </div>`));
+  
+  // ★ Size adjust (all elements!)
+  body.appendChild(makeGroup('サイズ調整', '', `
+    <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px">
+      <button class="prop-btn" data-size="smaller">− 縮小</button>
+      <button class="prop-btn" data-size="larger">+ 拡大</button>
+    </div>
+    <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px;margin-top:5px">
+      <button class="prop-btn" data-size="narrower">幅 −</button>
+      <button class="prop-btn" data-size="wider">幅 +</button>
+    </div>
+    <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px;margin-top:5px">
+      <button class="prop-btn" data-size="shorter">高さ −</button>
+      <button class="prop-btn" data-size="taller">高さ +</button>
+    </div>`));
   
   // Layer
   body.appendChild(makeGroup('レイヤー', '', `
@@ -1441,9 +1550,9 @@ function buildPropertiesPanel(el){
   // Action buttons
   let actions = posBtns;
   actions += `<button class="prop-btn-full" data-action="duplicate" style="margin-top:5px">📋 複製</button>`;
-  if(isFreeImage || isFreeText){
-    actions += `<button class="prop-btn-full prop-btn-full--danger" data-action="delete" style="margin-top:5px">🗑 削除</button>`;
-  }
+  actions += `<button class="prop-btn-full" data-action="reset-style" style="margin-top:5px">🔄 スタイルをリセット</button>`;
+  // 削除は全要素で
+  actions += `<button class="prop-btn-full prop-btn-full--danger" data-action="delete" style="margin-top:5px">🗑 ${(isFreeImage||isFreeText||el.classList.contains('free-shape'))?'削除':'非表示'}</button>`;
   body.appendChild(makeGroup('アクション', '', actions));
   
   // Set initial values
@@ -1582,17 +1691,68 @@ function attachPropertyHandlers(el){
     duplicateElement(el);
   });
   
-  // Delete
+  // Delete (or hide for non-free elements)
   document.querySelector('[data-action="delete"]')?.addEventListener('click',()=>{
-    if(confirm('削除しますか？')){
-      const tpl = el.closest('.tpl');
-      const tplId = tpl?.dataset.templateId;
-      el.remove();
-      if(tplId){
-        saveFreeItems(tplId);
+    const isFree = el.classList.contains('free-image') || el.classList.contains('free-text') || el.classList.contains('free-shape');
+    if(isFree){
+      if(confirm('削除しますか？')){
+        const tpl = el.closest('.tpl');
+        const tplId = tpl?.dataset.templateId;
+        el.remove();
+        if(tplId) saveFreeItems(tplId);
+        deselectAll();
+        showToast('削除したで');
       }
+    }else{
+      // 通常要素：非表示にする（display:none）
+      if(confirm('この要素を非表示にしますか？\n（テンプレ再読込で復活します）')){
+        el.style.display = 'none';
+        applyStyle(el, 'display', 'none');
+        deselectAll();
+        showToast('非表示にしたで。「全初期化」で復活');
+      }
+    }
+  });
+  
+  // ★ Rotation reset
+  document.querySelector('[data-action="rotation-reset"]')?.addEventListener('click',()=>{
+    setRotation(el, 0);
+    const slider = document.getElementById('prop-rotation');
+    if(slider){
+      slider.value = 0;
+      updateLabel(slider, '0°');
+    }
+    showToast('回転をリセット');
+  });
+  
+  // ★ Size buttons
+  document.querySelectorAll('[data-size]').forEach(btn=>{
+    btn.addEventListener('click',()=>resizeElement(el, btn.dataset.size));
+  });
+  
+  // ★ Reset all styles
+  document.querySelector('[data-action="reset-style"]')?.addEventListener('click',()=>{
+    if(confirm('この要素のスタイル（色・サイズ・位置・回転）をすべてリセットしますか？\n（編集したテキストは残ります）')){
+      // 編集テキストを保持
+      const isContentEditable = el.hasAttribute('contenteditable');
+      const innerHTML = isContentEditable ? el.innerHTML : null;
+      
+      el.removeAttribute('style');
+      el.classList.remove('is-positioned');
+      
+      // テンプレートのstylesから削除
+      const tpl = el.closest('.tpl');
+      if(tpl){
+        const tplId = tpl.dataset.templateId;
+        const elId = getElementId(el);
+        const state = loadState();
+        if(state[tplId]?.elementStyles?.[elId]) delete state[tplId].elementStyles[elId];
+        if(state[tplId]?.draggedPositions?.[elId]) delete state[tplId].draggedPositions[elId];
+        saveState(state);
+      }
+      
       deselectAll();
-      showToast('削除したで');
+      showToast('スタイルをリセット');
     }
   });
   
@@ -1824,8 +1984,8 @@ function makeDraggable(el){
         }
       }
     }else{
-      // タップのみ → 選択だけ
-      selectElement(el);
+      // タップのみ → 選択（shift押下時は複数選択）
+      selectElement(el, e.shiftKey);
     }
   });
   
