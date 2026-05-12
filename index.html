@@ -221,6 +221,17 @@ input,select{font-family:inherit}
   width:36px;height:30px;border:1px solid rgba(42,153,153,.25);
   border-radius:6px;cursor:pointer;padding:2px;
 }
+.prop-color-btn{
+  aspect-ratio:1;border:2px solid rgba(0,0,0,.1);border-radius:6px;
+  cursor:pointer;padding:0;transition:transform .1s ease;min-width:24px;min-height:24px;
+  -webkit-tap-highlight-color:transparent;
+}
+.prop-color-btn:hover{transform:scale(1.1);border-color:#1b7373}
+.prop-color-btn:active{transform:scale(.95)}
+.prop-color-picker{
+  -webkit-appearance:none;border:1.5px solid rgba(42,153,153,.2);
+  cursor:pointer;padding:0;border-radius:6px;
+}
 .prop-btn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
 .prop-btn{
   padding:6px;border:1px solid rgba(42,153,153,.25);border-radius:6px;
@@ -300,8 +311,12 @@ input,select{font-family:inherit}
 }
 .free-image{z-index:10}
 .free-text{z-index:11;padding:6px 8px;min-width:60px;min-height:30px}
-.free-image:hover,.free-text:hover,
-.free-image.is-selected,.free-text.is-selected{
+.free-shape{z-index:9;background:rgba(184,221,220,.4);border:2px solid #1b7373;border-radius:6px}
+.free-shape[data-shape="circle"]{border-radius:50%}
+.free-shape[data-shape="line"]{height:4px;background:#1b7373;border:none;border-radius:2px}
+.free-shape[data-shape="line-v"]{width:4px;background:#1b7373;border:none;border-radius:2px}
+.free-image:hover,.free-text:hover,.free-shape:hover,
+.free-image.is-selected,.free-text.is-selected,.free-shape.is-selected{
   border-color:rgba(42,153,153,.6);
 }
 .free-image img{width:100%;height:100%;object-fit:contain;pointer-events:none}
@@ -553,9 +568,9 @@ input,select{font-family:inherit}
 .tpl-menu__grid{display:grid;grid-template-columns:1fr 1fr;gap:26px 36px}
 .tpl-menu__section{position:relative}
 .tpl-menu__section-title{background:linear-gradient(135deg,#b8dddc,#a0c8c7);text-align:center;padding:11px 0;border-radius:8px;font-family:'Noto Serif JP',serif;font-size:21px;font-weight:500;color:#1b3a3a;letter-spacing:.3em;margin-bottom:14px;position:relative}
-.tpl-menu__section-title::before,.tpl-menu__section-title::after{content:'❦';position:absolute;top:50%;transform:translateY(-50%);font-size:12px;color:#1b7373;opacity:.5}
-.tpl-menu__section-title::before{left:16px}
-.tpl-menu__section-title::after{right:16px}
+.tpl-menu__section-title::before,.tpl-menu__section-title::after{display:none}
+.tpl-menu__section-title::before{left:16px;display:none}
+.tpl-menu__section-title::after{right:16px;display:none}
 .tpl-menu__items{display:flex;flex-direction:column;gap:0}
 .tpl-menu__item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 5px;border-bottom:1px dashed rgba(42,153,153,.2);gap:12px}
 .tpl-menu__item:last-child{border-bottom:none}
@@ -769,12 +784,14 @@ input,select{font-family:inherit}
 <!-- TOOLPANEL -->
 <div class="toolpanel">
   <div class="toolpanel__inner">
-    <button class="tool-btn" id="btn-add-image">🖼 画像追加</button>
-    <button class="tool-btn" id="btn-add-text">📝 テキスト追加</button>
+    <button class="tool-btn" id="btn-add-image">🖼 画像</button>
+    <button class="tool-btn" id="btn-add-text">📝 テキスト</button>
+    <button class="tool-btn" id="btn-add-rect">⬜ 四角</button>
+    <button class="tool-btn" id="btn-add-circle">⭕ 丸</button>
+    <button class="tool-btn" id="btn-add-line">📏 ライン</button>
+    <div class="tool-divider"></div>
     <button class="tool-btn" id="btn-set-bg">🎨 背景</button>
     <button class="tool-btn" id="btn-clear-bg">背景クリア</button>
-    <div class="tool-divider"></div>
-    <span class="tool-hint">💡 要素をクリック→右で詳細設定／文字や画像はドラッグで移動</span>
   </div>
 </div>
 
@@ -817,17 +834,17 @@ input,select{font-family:inherit}
               <div class="tpl-menu__section">
                 <div class="tpl-menu__section-title" contenteditable="true">整 体</div>
                 <div class="tpl-menu__items">
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）60分</div><span class="tpl-menu__item-staff" data-s="全員">全員</span><div class="tpl-menu__item-price" contenteditable="true">4,800<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）75分</div><span class="tpl-menu__item-staff" data-s="全員">全員</span><div class="tpl-menu__item-price" contenteditable="true">5,900<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）90分</div><span class="tpl-menu__item-staff" data-s="全員">全員</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">スタイル改善＆疲労回復 120分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋ストレッチ 90分♪</div><span class="tpl-menu__item-staff" data-s="久保">久保</span><div class="tpl-menu__item-price" contenteditable="true">5,500<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋ストレッチ 90分♪</div><span class="tpl-menu__item-staff" data-s="久保">久保</span><div class="tpl-menu__item-price" contenteditable="true">8,800<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">ドライヘッドマッサージ30分＋日本古式整体45分/75分</div><span class="tpl-menu__item-staff" data-s="全員">全員</span><div class="tpl-menu__item-price" contenteditable="true">6,600<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋内蔵調整＋ドライリンパマッサージ 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">8,800<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">院長プレミアム♪完全オーダーメイド整体 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">全身スタイル改善/ボキボキしない全身姿勢矯正 60分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">6,200<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">全身スタイル改善/ボキボキしない全身姿勢矯正 90分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">9,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）60分</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">4,800<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）75分</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">5,900<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）90分</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">スタイル改善＆疲労回復 120分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋ストレッチ 90分♪</div><span class="tpl-menu__item-staff" data-s="久保" contenteditable="true">久保</span><div class="tpl-menu__item-price" contenteditable="true">5,500<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋ストレッチ 90分♪</div><span class="tpl-menu__item-staff" data-s="久保" contenteditable="true">久保</span><div class="tpl-menu__item-price" contenteditable="true">8,800<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">ドライヘッドマッサージ30分＋日本古式整体45分/75分</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">6,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋内蔵調整＋ドライリンパマッサージ 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用" contenteditable="true">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">8,800<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">院長プレミアム♪完全オーダーメイド整体 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用" contenteditable="true">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">全身スタイル改善/ボキボキしない全身姿勢矯正 60分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">6,200<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">全身スタイル改善/ボキボキしない全身姿勢矯正 90分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">9,000<small>円</small></div></div>
                 </div>
               </div>
             </div>
@@ -835,23 +852,23 @@ input,select{font-family:inherit}
               <div class="tpl-menu__section">
                 <div class="tpl-menu__section-title" contenteditable="true">美容整体・調整</div>
                 <div class="tpl-menu__items">
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">自律神経の乱れ＆脳疲労/頭蓋骨/首/肩/顔ツボ 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">O脚・X脚矯正 90分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">造顔・お顔の歪み調整 60分</div><span class="tpl-menu__item-staff" data-s="朝輝">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">6,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">自律神経の乱れ＆脳疲労/頭蓋骨/首/肩/顔ツボ 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用" contenteditable="true">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">O脚・X脚矯正 90分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">造顔・お顔の歪み調整 60分</div><span class="tpl-menu__item-staff" data-s="朝輝" contenteditable="true">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">6,000<small>円</small></div></div>
                 </div>
               </div>
               <div class="tpl-menu__section" style="margin-top:20px">
                 <div class="tpl-menu__section-title" contenteditable="true">リ ン パ オ イ ル</div>
                 <div class="tpl-menu__items">
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 40分</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">4,900<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 60分</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">6,600<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 90分</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">8,900<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 60分</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">6,500<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 40分</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 90分（全身）</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">12,000<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">リンパオイル30分＋日本古式整体40分</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">10,100<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパ90分＋ヘッドスパ20分＋整体40分/計150分</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">18,700<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">リンパオイル90分＋日本古式整体30分</div><span class="tpl-menu__item-staff" data-s="里紗久保">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">15,100<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 40分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">4,900<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 60分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">6,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 90分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">8,900<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 60分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">6,500<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 40分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 90分（全身）</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">12,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">リンパオイル30分＋日本古式整体40分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">10,100<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパ90分＋ヘッドスパ20分＋整体40分/計150分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">18,700<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">リンパオイル90分＋日本古式整体30分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">15,100<small>円</small></div></div>
                 </div>
               </div>
             </div>
@@ -877,23 +894,23 @@ input,select{font-family:inherit}
               <div class="tpl-menu__section">
                 <div class="tpl-menu__section-title" contenteditable="true">マタニティ</div>
                 <div class="tpl-menu__items">
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">≪マタニティ整体A≫ 整体 60分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,600<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">≪マタニティ整体B≫ 整体60分＋足つぼオイル20分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">5,600<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">産後の骨盤矯正 45分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">≪マタニティ整体A≫ 整体 60分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">≪マタニティ整体B≫ 整体60分＋足つぼオイル20分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">5,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">産後の骨盤矯正 45分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,000<small>円</small></div></div>
                 </div>
               </div>
               <div class="tpl-menu__section" style="margin-top:20px">
                 <div class="tpl-menu__section-title" contenteditable="true">ピラティス</div>
                 <div class="tpl-menu__items">
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">マシンピラティス 60分</div><span class="tpl-menu__item-staff" data-s="朝輝">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">6,000<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">姿勢＆骨盤矯正45分＋マシンピラティスで引き締め60分</div><span class="tpl-menu__item-staff" data-s="朝輝">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">9,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">マシンピラティス 60分</div><span class="tpl-menu__item-staff" data-s="朝輝" contenteditable="true">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">6,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">姿勢＆骨盤矯正45分＋マシンピラティスで引き締め60分</div><span class="tpl-menu__item-staff" data-s="朝輝" contenteditable="true">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">9,000<small>円</small></div></div>
                 </div>
               </div>
               <div class="tpl-menu__section" style="margin-top:20px">
                 <div class="tpl-menu__section-title" contenteditable="true">ヘッドマッサージ</div>
                 <div class="tpl-menu__items">
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">極楽ヘッドマッサージ 30分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">3,600<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">耳ツボ</div><span class="tpl-menu__item-staff" data-s="全員">全員</span><div class="tpl-menu__item-price" contenteditable="true">1,100<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">極楽ヘッドマッサージ 30分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">3,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">耳ツボ</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">1,100<small>円</small></div></div>
                 </div>
               </div>
             </div>
@@ -901,9 +918,9 @@ input,select{font-family:inherit}
               <div class="tpl-menu__section">
                 <div class="tpl-menu__section-title" contenteditable="true">フェイシャル・エステ</div>
                 <div class="tpl-menu__items">
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">フェイシャルエステ 40分</div><span class="tpl-menu__item-staff" data-s="里紗">里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,900<small>円</small></div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">キャビテーション＋痩身リンパマッサージ 60分</div><span class="tpl-menu__item-staff" data-s="里紗">里紗</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small>〜</div></div>
-                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">滝汗遠赤マット 30分</div><span class="tpl-menu__item-staff" data-s="里紗">里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">フェイシャルエステ 40分</div><span class="tpl-menu__item-staff" data-s="里紗" contenteditable="true">里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,900<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">キャビテーション＋痩身リンパマッサージ 60分</div><span class="tpl-menu__item-staff" data-s="里紗" contenteditable="true">里紗</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small>〜</div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">滝汗遠赤マット 30分</div><span class="tpl-menu__item-staff" data-s="里紗" contenteditable="true">里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,000<small>円</small></div></div>
                 </div>
               </div>
             </div>
@@ -1366,6 +1383,34 @@ function buildPropertiesPanel(el){
   }
   
   // Universal properties =====
+  // Background color (for headings, sections etc.)
+  const curBg = el.style.backgroundColor || '';
+  body.appendChild(makeGroup('背景色', '', `
+    <div class="prop-btn-grid" style="grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+      <button class="prop-color-btn" data-bg="transparent" style="background:transparent;border:2px dashed #999" title="なし"></button>
+      <button class="prop-color-btn" data-bg="#b8dddc" style="background:#b8dddc" title="ミント"></button>
+      <button class="prop-color-btn" data-bg="#a0c8c7" style="background:#a0c8c7" title="ティール淡"></button>
+      <button class="prop-color-btn" data-bg="#2a9999" style="background:#2a9999" title="ティール"></button>
+      <button class="prop-color-btn" data-bg="#1b3a3a" style="background:#1b3a3a" title="ダーク"></button>
+      <button class="prop-color-btn" data-bg="#d4b687" style="background:#d4b687" title="ゴールド"></button>
+      <button class="prop-color-btn" data-bg="#faf8f3" style="background:#faf8f3" title="クリーム"></button>
+    </div>
+    <input type="color" class="prop-color-picker" id="prop-bg-custom" value="${curBg.startsWith('rgb')?'#000000':(curBg||'#b8dddc')}" style="width:100%;height:32px;border-radius:6px;cursor:pointer">`));
+  
+  // Text color
+  const curColor = window.getComputedStyle(el).color;
+  body.appendChild(makeGroup('文字色', '', `
+    <div class="prop-btn-grid" style="grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+      <button class="prop-color-btn" data-fg="#1b7373" style="background:#1b7373" title="ティール"></button>
+      <button class="prop-color-btn" data-fg="#1b3a3a" style="background:#1b3a3a" title="ダーク"></button>
+      <button class="prop-color-btn" data-fg="#2c3e3e" style="background:#2c3e3e" title="グレー"></button>
+      <button class="prop-color-btn" data-fg="#ffffff" style="background:#fff;border:1px solid #ccc" title="白"></button>
+      <button class="prop-color-btn" data-fg="#d4b687" style="background:#d4b687" title="ゴールド"></button>
+      <button class="prop-color-btn" data-fg="#9b2c2c" style="background:#9b2c2c" title="赤"></button>
+      <button class="prop-color-btn" data-fg="#2c5282" style="background:#2c5282" title="紺"></button>
+    </div>
+    <input type="color" class="prop-color-picker" id="prop-fg-custom" value="#1b7373" style="width:100%;height:32px;border-radius:6px;cursor:pointer">`));
+  
   // Opacity
   const curOpacity = Math.round(parseFloat(window.getComputedStyle(el).opacity) * 100);
   body.appendChild(makeGroup('不透明度', curOpacity+'%', `
@@ -1423,6 +1468,27 @@ function makeGroup(label, value, content){
 }
 
 function attachPropertyHandlers(el){
+  // ★ Background color buttons
+  document.querySelectorAll('[data-bg]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const c = btn.dataset.bg;
+      applyStyle(el, 'background', c === 'transparent' ? 'none' : c);
+      applyStyle(el, 'backgroundImage', c === 'transparent' ? 'none' : '');
+    });
+  });
+  const bgPicker = document.getElementById('prop-bg-custom');
+  if(bgPicker) bgPicker.addEventListener('input',()=>{
+    applyStyle(el, 'background', bgPicker.value);
+    applyStyle(el, 'backgroundImage', '');
+  });
+  
+  // ★ Text color buttons
+  document.querySelectorAll('[data-fg]').forEach(btn=>{
+    btn.addEventListener('click',()=>applyStyle(el, 'color', btn.dataset.fg));
+  });
+  const fgPicker = document.getElementById('prop-fg-custom');
+  if(fgPicker) fgPicker.addEventListener('input',()=>applyStyle(el, 'color', fgPicker.value));
+  
   // Font size
   const fsInput = document.getElementById('prop-fontsize');
   if(fsInput){
@@ -1682,19 +1748,8 @@ function makeDraggable(el){
   if(el.dataset.draggableBound) return;
   el.dataset.draggableBound = '1';
   
-  // ★ v9: テキスト要素・写真枠・ロゴ枠はドラッグ不可（タップで誤動作するから）
-  // 自由配置要素（free-image, free-text）のみドラッグ可能にする
-  const isFree = el.classList.contains('free-image') || el.classList.contains('free-text');
-  if(!isFree){
-    // 通常要素は「選択のみ」（位置調整パッドから動かす）
-    el.addEventListener('click',(e)=>{
-      if(el.hasAttribute('contenteditable') && el.matches(':focus')) return;
-      if(e.target.tagName === 'INPUT') return;
-      e.stopPropagation();
-      selectElement(el);
-    });
-    return;
-  }
+  // ★ v3: すべての要素をドラッグ可能にする（タップでは動かない安全装置あり）
+  const isFree = el.classList.contains('free-image') || el.classList.contains('free-text') || el.classList.contains('free-shape');
   
   let dragState = null;
   
@@ -2174,6 +2229,22 @@ function saveFreeItems(tplId){
     });
   });
   setTplData(tplId, 'freeTexts', texts);
+  
+  // ★ Save shapes
+  const shapes = [];
+  tpl.querySelectorAll('.free-shape').forEach(fs=>{
+    shapes.push({
+      type: fs.dataset.shape,
+      x: parseFloat(fs.style.left), y: parseFloat(fs.style.top),
+      w: parseFloat(fs.style.width), h: parseFloat(fs.style.height),
+      background: fs.style.background || '',
+      borderColor: fs.style.borderColor || '',
+      opacity: fs.style.opacity || '1',
+      zIndex: fs.style.zIndex || '',
+      transform: fs.style.transform || '',
+    });
+  });
+  setTplData(tplId, 'freeShapes', shapes);
 }
 
 /* ============ DUPLICATE ============ */
@@ -2771,6 +2842,35 @@ function init(){
     if(newEl) selectElement(newEl);
     showToast('テキスト追加！ダブルクリックで編集');
   });
+  
+  // ★ Shape buttons
+  function addShape(shapeType){
+    const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+    if(!tpl) return;
+    const el = document.createElement('div');
+    el.className = 'free-shape selectable';
+    el.dataset.shape = shapeType;
+    let w = 200, h = 200;
+    if(shapeType === 'line'){ w = 300; h = 4; }
+    if(shapeType === 'line-v'){ w = 4; h = 300; }
+    el.style.cssText = `position:absolute;left:${tpl.offsetWidth/2 - w/2}px;top:${tpl.offsetHeight/2 - h/2}px;width:${w}px;height:${h}px;`;
+    
+    // Add resize/delete handles
+    el.innerHTML = `
+      <button class="fi-handle" title="リサイズ"></button>
+      <button class="fi-delete" title="削除">×</button>
+      <button class="fi-rotate" title="回転">↻</button>`;
+    
+    tpl.appendChild(el);
+    makeDraggable(el);
+    saveFreeItems(currentTemplate);
+    selectElement(el);
+    showToast(`${shapeType}追加！色も右パネルで変えられるで`);
+  }
+  
+  document.getElementById('btn-add-rect').addEventListener('click',()=>addShape('rect'));
+  document.getElementById('btn-add-circle').addEventListener('click',()=>addShape('circle'));
+  document.getElementById('btn-add-line').addEventListener('click',()=>addShape('line'));
   
   // Background
   document.getElementById('btn-set-bg').addEventListener('click',(e)=>{
