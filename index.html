@@ -790,6 +790,9 @@ input,select{font-family:inherit}
     <button class="tool-btn" id="btn-add-circle">⭕ 丸</button>
     <button class="tool-btn" id="btn-add-line">📏 ライン</button>
     <div class="tool-divider"></div>
+    <button class="tool-btn" id="btn-select-all">🔘 すべて選択</button>
+    <button class="tool-btn" id="btn-deselect">✖ 選択解除</button>
+    <div class="tool-divider"></div>
     <button class="tool-btn" id="btn-set-bg">🎨 背景</button>
     <button class="tool-btn" id="btn-clear-bg">背景クリア</button>
   </div>
@@ -1283,7 +1286,49 @@ function makeSelectable(){
   });
 }
 
-function selectElement(el){
+// ★ 複数選択の状態
+let multiSelected = [];
+
+function selectElement(el, modifier){
+  // Shift+クリック: マルチセレクト追加・解除
+  if(modifier === 'add'){
+    // 既存の単独選択があれば最初の要素として組み込む
+    if(multiSelected.length === 0 && selectedElement && selectedElement !== el){
+      multiSelected = [selectedElement];
+    }
+    if(multiSelected.includes(el)){
+      // 解除
+      el.classList.remove('is-selected');
+      multiSelected = multiSelected.filter(x=>x!==el);
+    }else{
+      multiSelected.push(el);
+      el.classList.add('is-selected');
+    }
+    if(multiSelected.length >= 2){
+      selectedElement = null; // 単独選択はクリア
+      safeRun('複数選択パネル', ()=>buildMultiPanel());
+      if(window.innerWidth <= 1024){
+        document.getElementById('dock').classList.add('is-shown');
+        document.getElementById('dock-backdrop').classList.add('is-shown');
+      }
+      return;
+    }else if(multiSelected.length === 1){
+      // 1つ残り→通常選択にフォールバック
+      el = multiSelected[0];
+      multiSelected = [];
+    }else{
+      deselectAll();
+      return;
+    }
+  }else{
+    // 通常クリック：マルチセレクトをクリア
+    if(multiSelected.length > 0){
+      multiSelected.forEach(e=>e.classList.remove('is-selected'));
+      multiSelected = [];
+    }
+  }
+  
+  // 通常の単独選択処理（既存と同じ）
   if(selectedElement && selectedElement !== el){
     selectedElement.classList.remove('is-selected');
   }
@@ -1296,7 +1341,87 @@ function selectElement(el){
   }
 }
 
+function buildMultiPanel(){
+  document.getElementById('dock-title').textContent = `🔘 複数選択中（${multiSelected.length}個）`;
+  document.getElementById('dock-subtitle').textContent = '一斉に動かせるで';
+  const body = document.getElementById('dock-body');
+  body.innerHTML = `
+    <div class="prop-group">
+      <label class="prop-label">位置を一斉に動かす</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-width:200px;margin:8px auto">
+        <div></div>
+        <button class="prop-btn" data-gmove="up">⬆</button>
+        <div></div>
+        <button class="prop-btn" data-gmove="left">⬅</button>
+        <button class="prop-btn" data-gmove="center">⊙</button>
+        <button class="prop-btn" data-gmove="right">➡</button>
+        <div></div>
+        <button class="prop-btn" data-gmove="down">⬇</button>
+        <div></div>
+      </div>
+      <div style="display:flex;gap:5px;justify-content:center;margin-top:10px">
+        <button class="prop-btn" data-gstep="1">1px</button>
+        <button class="prop-btn is-active" data-gstep="10">10px</button>
+        <button class="prop-btn" data-gstep="50">50px</button>
+      </div>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">サイズを一斉に</label>
+      <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px">
+        <button class="prop-btn" data-gsize="smaller">− 縮小</button>
+        <button class="prop-btn" data-gsize="larger">+ 拡大</button>
+      </div>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">色を一斉に</label>
+      <div class="prop-btn-grid" style="grid-template-columns:repeat(7,1fr);gap:4px">
+        <button class="prop-color-btn" data-gbg="transparent" style="background:transparent;border:2px dashed #999" title="なし"></button>
+        <button class="prop-color-btn" data-gbg="#b8dddc" style="background:#b8dddc"></button>
+        <button class="prop-color-btn" data-gbg="#2a9999" style="background:#2a9999"></button>
+        <button class="prop-color-btn" data-gbg="#1b3a3a" style="background:#1b3a3a"></button>
+        <button class="prop-color-btn" data-gbg="#d4b687" style="background:#d4b687"></button>
+        <button class="prop-color-btn" data-gbg="#9b2c2c" style="background:#9b2c2c"></button>
+        <button class="prop-color-btn" data-gbg="#faf8f3" style="background:#faf8f3"></button>
+      </div>
+    </div>
+    <div class="prop-group">
+      <button class="prop-btn-full" id="multi-deselect">選択を解除</button>
+    </div>
+  `;
+  
+  let gstep = 10;
+  body.querySelectorAll('[data-gstep]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      gstep = parseInt(b.dataset.gstep);
+      body.querySelectorAll('[data-gstep]').forEach(x=>x.classList.remove('is-active'));
+      b.classList.add('is-active');
+    });
+  });
+  body.querySelectorAll('[data-gmove]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      multiSelected.forEach(el=>safeRun('一括移動', ()=>moveElement(el, b.dataset.gmove, gstep)));
+    });
+  });
+  body.querySelectorAll('[data-gsize]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      multiSelected.forEach(el=>safeRun('一括サイズ', ()=>resizeElement(el, b.dataset.gsize)));
+    });
+  });
+  body.querySelectorAll('[data-gbg]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const c = b.dataset.gbg;
+      multiSelected.forEach(el=>safeRun('一括色', ()=>{
+        applyStyle(el, 'background', c === 'transparent' ? 'none' : c);
+      }));
+    });
+  });
+  document.getElementById('multi-deselect')?.addEventListener('click', deselectAll);
+}
+
 function deselectAll(){
+  // 複数選択もクリア
+  multiSelected.forEach(e=>e.classList.remove('is-selected'));
+  multiSelected = [];
   if(selectedElement){
     selectedElement.classList.remove('is-selected');
     selectedElement = null;
@@ -1934,8 +2059,8 @@ function makeDraggable(el){
         }
       }
     }else{
-      // タップのみ → 選択だけ
-      selectElement(el);
+      // タップのみ → 選択（Shift押下時は複数選択追加）
+      selectElement(el, e.shiftKey ? 'add' : null);
     }
   });
   
@@ -2993,6 +3118,36 @@ function init(){
     applyBackground(currentTemplate, null);
     setTplData(currentTemplate,'background',null);
     showToast('背景クリア');
+  });
+  
+  // ★ 全選択
+  document.getElementById('btn-select-all').addEventListener('click',()=>{
+    const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+    if(!tpl) return;
+    // 既存選択クリア
+    multiSelected.forEach(e=>e.classList.remove('is-selected'));
+    multiSelected = [];
+    if(selectedElement){ selectedElement.classList.remove('is-selected'); selectedElement = null; }
+    // 全要素を multiSelected に
+    const all = tpl.querySelectorAll('.free-image, .free-text, .free-shape, .photo-slot, .logo-slot, [contenteditable="true"]');
+    all.forEach(el=>{
+      if(el.offsetParent === null) return; // 非表示はスキップ
+      multiSelected.push(el);
+      el.classList.add('is-selected');
+    });
+    if(multiSelected.length >= 2){
+      safeRun('複数選択パネル', ()=>buildMultiPanel());
+      if(window.innerWidth <= 1024){
+        document.getElementById('dock').classList.add('is-shown');
+        document.getElementById('dock-backdrop').classList.add('is-shown');
+      }
+      showToast(`${multiSelected.length}個 選択したで`);
+    }
+  });
+  
+  // ★ 選択解除
+  document.getElementById('btn-deselect').addEventListener('click',()=>{
+    deselectAll();
   });
   document.getElementById('btn-upload-bg').addEventListener('click',()=>{
     document.getElementById('bg-file-input').click();
