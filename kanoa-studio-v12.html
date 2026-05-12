@@ -1,0 +1,3443 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>KANOA デザインスタジオ v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&family=Sawarabi+Mincho&family=Klee+One:wght@400;600&family=DotGothic16&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ========== RESET ========== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:linear-gradient(135deg,#f0f5f4 0%,#e8f0ef 100%);
+  min-height:100vh;color:#1f2937;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+img{display:block;max-width:100%}
+input,select{font-family:inherit}
+
+/* ========== APP HEADER ========== */
+.app-header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(42,153,153,.15);padding:12px 18px;
+}
+.app-header__inner{
+  max-width:1600px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+}
+.app-brand{display:flex;align-items:center;gap:10px}
+.app-brand__logo{
+  width:34px;height:34px;
+  background:linear-gradient(135deg,#2a9999,#1b7373);
+  border-radius:50%;display:grid;place-items:center;color:#fff;
+  font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;
+  box-shadow:0 4px 12px rgba(42,153,153,.3);
+}
+.app-brand__text{
+  font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;
+  letter-spacing:.04em;color:#1b7373;
+}
+.app-brand__text small{
+  display:block;font-family:'Noto Sans JP',sans-serif;
+  font-size:9px;color:#6b7e7e;letter-spacing:.2em;margin-top:-2px;
+}
+.app-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{
+  padding:8px 14px;border-radius:8px;
+  font-size:12px;font-weight:500;letter-spacing:.02em;
+  transition:all .2s ease;display:inline-flex;align-items:center;gap:5px;
+}
+.btn--primary{
+  background:linear-gradient(135deg,#2a9999,#1b7373);color:#fff;
+  box-shadow:0 4px 12px rgba(42,153,153,.25);
+}
+.btn--primary:hover{transform:translateY(-1px)}
+.btn--ghost{background:transparent;color:#1b7373;border:1px solid rgba(42,153,153,.3)}
+.btn--ghost:hover{background:rgba(42,153,153,.06)}
+.btn--danger{background:transparent;color:#9b2c2c;border:1px solid rgba(155,44,44,.3)}
+.btn--danger:hover{background:rgba(155,44,44,.06)}
+
+/* ========== TABS ========== */
+.template-bar{
+  background:#fff;border-bottom:1px solid rgba(42,153,153,.1);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+.template-bar__inner{max-width:1600px;margin:0 auto;padding:10px 18px;display:flex;gap:6px}
+.tab-btn{
+  padding:7px 14px;border-radius:999px;
+  font-size:12px;font-weight:500;color:#6b7e7e;
+  white-space:nowrap;transition:all .2s ease;
+  border:1.5px solid transparent;
+}
+.tab-btn:hover{color:#1b7373;background:rgba(42,153,153,.05)}
+.tab-btn.is-active{
+  background:linear-gradient(135deg,#2a9999,#1b7373);color:#fff;
+  box-shadow:0 2px 8px rgba(42,153,153,.25);
+}
+
+/* ========== TOOLPANEL (上部の操作ボタン) ========== */
+.toolpanel{background:#fff;border-bottom:1px solid rgba(42,153,153,.1)}
+.toolpanel__inner{
+  max-width:1600px;margin:0 auto;padding:8px 18px;
+  display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+}
+.tool-btn{
+  background:#fff;border:1px solid rgba(42,153,153,.25);
+  padding:6px 12px;border-radius:7px;
+  font-size:11.5px;color:#1b7373;font-weight:500;
+  transition:all .15s ease;display:inline-flex;align-items:center;gap:5px;
+}
+.tool-btn:hover{background:rgba(42,153,153,.06);border-color:rgba(42,153,153,.5)}
+.tool-divider{width:1px;height:22px;background:rgba(42,153,153,.15)}
+.tool-hint{font-size:10px;color:#6b7e7e;margin-left:8px}
+
+/* 背景プリセットメニュー */
+.bg-menu{
+  position:absolute;background:#fff;border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.15),0 0 0 1px rgba(42,153,153,.1);
+  padding:12px;z-index:150;display:none;min-width:260px;
+}
+.bg-menu.is-shown{display:block}
+.bg-menu__title{font-size:10px;color:#6b7e7e;letter-spacing:.1em;margin-bottom:6px;font-weight:500}
+.bg-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.bg-preset{
+  aspect-ratio:1;border-radius:7px;border:2px solid transparent;
+  cursor:pointer;transition:all .15s ease;overflow:hidden;
+  position:relative;
+}
+.bg-preset:hover{transform:scale(1.05)}
+.bg-preset.is-active{border-color:#2a9999;box-shadow:0 0 0 2px rgba(42,153,153,.2)}
+.bg-preset__label{
+  position:absolute;bottom:2px;left:2px;right:2px;
+  background:rgba(0,0,0,.6);color:#fff;font-size:9px;
+  padding:1px;border-radius:3px;text-align:center;
+}
+
+/* ========== STAGE LAYOUT ========== */
+.stage-wrap{
+  display:grid;grid-template-columns:1fr 280px;
+  max-width:1600px;margin:0 auto;gap:16px;padding:16px 18px 100px;
+}
+.stage{min-width:0}
+.stage__help{
+  background:linear-gradient(135deg,rgba(42,153,153,.08),rgba(42,153,153,.03));
+  border:1px solid rgba(42,153,153,.15);border-radius:10px;
+  padding:10px 14px;margin-bottom:14px;
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:11.5px;color:#2c3e3e;line-height:1.55;
+}
+.stage__help-icon{
+  flex-shrink:0;width:20px;height:20px;border-radius:50%;
+  background:#2a9999;color:#fff;display:grid;place-items:center;
+  font-size:11px;font-weight:700;
+}
+
+/* ========== CANVAS WRAP ========== */
+.canvas-wrap{
+  display:flex;justify-content:center;align-items:flex-start;
+  background:linear-gradient(180deg,#e8edf0 0%,#dde4ea 100%);
+  border-radius:14px;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.04);
+  padding:30px 20px;overflow:auto;
+}
+.canvas-frame{
+  transform-origin:top center;
+  transition:transform .3s ease;
+  position:relative;
+}
+.canvas-frame::before{
+  content:attr(data-size-label);
+  position:absolute;top:-22px;left:50%;
+  transform:translateX(-50%);
+  font-size:10px;color:#6b7e7e;letter-spacing:.15em;
+  font-weight:500;white-space:nowrap;
+  font-family:'Cormorant Garamond',serif;
+}
+
+/* テンプレに「紙」感の影と枠線 */
+.tpl{
+  position:relative;background:#fff;
+  font-family:'Noto Sans JP',sans-serif;
+  color:#2c3e3e;overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.06);
+}
+
+/* ========== DOCK (右側プロパティパネル) ========== */
+.dock{
+  background:#fff;border-radius:14px;
+  box-shadow:0 4px 24px rgba(0,0,0,.06),0 0 0 1px rgba(42,153,153,.06);
+  padding:16px;height:fit-content;position:sticky;top:140px;
+  max-height:calc(100vh - 160px);overflow-y:auto;
+}
+.dock__title{
+  font-family:'Noto Serif JP',serif;font-size:14px;color:#1b7373;
+  letter-spacing:.05em;margin-bottom:4px;font-weight:500;
+}
+.dock__subtitle{font-size:10.5px;color:#6b7e7e;margin-bottom:14px}
+.dock__empty{
+  text-align:center;color:#a8b8b8;padding:30px 10px;
+  font-size:11.5px;line-height:1.6;
+}
+.dock__empty-icon{font-size:30px;margin-bottom:10px;opacity:.4}
+
+.prop-group{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(42,153,153,.08)}
+.prop-group:last-child{border-bottom:none}
+.prop-label{
+  font-size:10px;color:#6b7e7e;letter-spacing:.1em;font-weight:600;
+  text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;
+  justify-content:space-between;
+}
+.prop-value{font-size:11px;color:#1b7373;font-weight:500}
+.prop-row{display:flex;gap:5px;align-items:center}
+.prop-input{
+  flex:1;padding:5px 8px;border:1px solid rgba(42,153,153,.25);
+  border-radius:6px;font-size:12px;color:#1f2937;background:#fff;
+  outline:none;transition:border-color .15s ease;
+}
+.prop-input:focus{border-color:#2a9999}
+.prop-range{
+  width:100%;-webkit-appearance:none;height:4px;border-radius:999px;
+  background:rgba(42,153,153,.15);outline:none;
+}
+.prop-range::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:#2a9999;cursor:pointer;border:2px solid #fff;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+}
+.prop-range::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;background:#2a9999;
+  cursor:pointer;border:2px solid #fff;
+}
+.prop-color{
+  width:36px;height:30px;border:1px solid rgba(42,153,153,.25);
+  border-radius:6px;cursor:pointer;padding:2px;
+}
+.prop-color-btn{
+  aspect-ratio:1;border:2px solid rgba(0,0,0,.1);border-radius:6px;
+  cursor:pointer;padding:0;transition:transform .1s ease;min-width:24px;min-height:24px;
+  -webkit-tap-highlight-color:transparent;
+}
+.prop-color-btn:hover{transform:scale(1.1);border-color:#1b7373}
+.prop-color-btn:active{transform:scale(.95)}
+.prop-color-picker{
+  -webkit-appearance:none;border:1.5px solid rgba(42,153,153,.2);
+  cursor:pointer;padding:0;border-radius:6px;
+}
+.prop-btn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.prop-btn{
+  padding:6px;border:1px solid rgba(42,153,153,.25);border-radius:6px;
+  background:#fff;font-size:11px;color:#1b7373;
+  transition:all .15s ease;display:flex;align-items:center;justify-content:center;
+}
+.prop-btn:hover{background:rgba(42,153,153,.06);border-color:rgba(42,153,153,.5)}
+.prop-btn.is-active{background:linear-gradient(135deg,#2a9999,#1b7373);color:#fff;border-color:transparent}
+.prop-btn-full{
+  padding:7px;border:1px solid rgba(42,153,153,.25);border-radius:6px;
+  background:#fff;font-size:11.5px;color:#1b7373;font-weight:500;
+  transition:all .15s ease;width:100%;display:flex;align-items:center;
+  justify-content:center;gap:5px;
+}
+.prop-btn-full:hover{background:rgba(42,153,153,.06)}
+.prop-btn-full--danger{color:#9b2c2c;border-color:rgba(155,44,44,.25)}
+.prop-btn-full--danger:hover{background:rgba(155,44,44,.06)}
+.prop-actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.prop-select{
+  width:100%;padding:6px 8px;border:1px solid rgba(42,153,153,.25);
+  border-radius:6px;font-size:12px;background:#fff;color:#1f2937;outline:none;
+}
+
+/* ========== EDITABLE ========== */
+[contenteditable="true"]{
+  outline:none;cursor:text;transition:background .15s ease,box-shadow .15s ease;
+  border-radius:3px;position:relative;
+}
+[contenteditable="true"]:hover{
+  background:rgba(42,153,153,.06);box-shadow:0 0 0 2px rgba(42,153,153,.15);
+}
+[contenteditable="true"]:focus{
+  background:rgba(42,153,153,.08);box-shadow:0 0 0 2px rgba(42,153,153,.4);
+}
+
+/* ========== SELECTABLE ========== */
+.selectable.is-selected{
+  outline:2px solid #2a9999 !important;
+  outline-offset:2px;
+  box-shadow:0 0 0 4px rgba(42,153,153,.15) !important;
+  background:rgba(42,153,153,.04) !important;
+}
+/* ★ 複数選択中はテキスト編集モードに入らない */
+.is-multi-selected [contenteditable="true"]{
+  user-select:none !important; -webkit-user-select:none !important;
+}
+.pos-placeholder{user-select:none}
+
+/* ========== PHOTO / LOGO SLOTS ========== */
+.photo-slot,.logo-slot{
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:all .2s ease;
+}
+.photo-slot:hover::after{
+  content:'クリックで写真差し替え';
+  position:absolute;inset:0;background:rgba(42,153,153,.85);color:#fff;
+  display:grid;place-items:center;font-size:12px;font-weight:500;
+  letter-spacing:.05em;border-radius:inherit;z-index:5;pointer-events:none;
+}
+.logo-slot:hover::after{
+  content:'クリックでロゴ差し替え';
+  position:absolute;inset:0;background:rgba(42,153,153,.85);color:#fff;
+  display:grid;place-items:center;font-size:10px;font-weight:500;
+  letter-spacing:.05em;border-radius:8px;z-index:5;pointer-events:none;
+}
+.photo-slot img,.logo-slot img{width:100%;height:100%;object-fit:cover}
+.logo-slot img{object-fit:contain}
+.photo-slot input[type="file"],.logo-slot input[type="file"]{display:none}
+
+/* ========== BG LAYER ========== */
+.bg-layer{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-size:cover;background-position:center;
+}
+
+/* ========== FREE IMAGE & FREE TEXT ========== */
+.free-image,.free-text{
+  position:absolute;cursor:move;
+  border:2px dashed transparent;border-radius:4px;
+  transition:border-color .15s ease;
+  user-select:none;-webkit-user-select:none;touch-action:none;
+}
+.free-image{z-index:10}
+.free-text{z-index:11;padding:6px 8px;min-width:60px;min-height:30px}
+.free-shape{z-index:9;background:rgba(184,221,220,.4);border:2px solid #1b7373;border-radius:6px}
+.free-shape[data-shape="circle"]{border-radius:50%}
+.free-shape[data-shape="line"]{height:4px;background:#1b7373;border:none;border-radius:2px}
+.free-shape[data-shape="line-v"]{width:4px;background:#1b7373;border:none;border-radius:2px}
+.free-image:hover,.free-text:hover,.free-shape:hover,
+.free-image.is-selected,.free-text.is-selected,.free-shape.is-selected{
+  border-color:rgba(42,153,153,.6);
+}
+.free-image img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.free-text [contenteditable="true"]{
+  width:100%;height:100%;background:transparent;
+  outline:none;border:none;color:inherit;font:inherit;
+  text-align:inherit;line-height:inherit;letter-spacing:inherit;
+}
+
+/* Drag handles */
+.fi-handle,.ft-handle{
+  position:absolute;width:16px;height:16px;
+  background:#2a9999;border:2.5px solid white;border-radius:50%;
+  cursor:nwse-resize;bottom:-8px;right:-8px;z-index:3;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);display:none;
+}
+.fi-delete,.ft-delete{
+  position:absolute;width:22px;height:22px;
+  background:#dc2626;color:#fff;border:2px solid white;border-radius:50%;
+  cursor:pointer;top:-11px;right:-11px;z-index:3;
+  font-size:13px;font-weight:700;line-height:1;
+  display:none;align-items:center;justify-content:center;padding:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.fi-rotate,.ft-rotate{
+  position:absolute;width:18px;height:18px;
+  background:#fff;border:2px solid #2a9999;border-radius:50%;
+  cursor:grab;top:-26px;left:50%;transform:translateX(-50%);
+  z-index:3;display:none;align-items:center;justify-content:center;
+  font-size:11px;color:#2a9999;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+.fi-rotate::before,.ft-rotate::before{
+  content:'';position:absolute;width:1px;height:8px;background:#2a9999;
+  top:18px;left:50%;transform:translateX(-50%);
+}
+.free-image.is-selected .fi-handle,
+.free-image.is-selected .fi-delete,
+.free-image.is-selected .fi-rotate,
+.free-text.is-selected .ft-handle,
+.free-text.is-selected .ft-delete,
+.free-text.is-selected .ft-rotate{display:flex}
+
+/* ========== DRAGGED ELEMENTS (元レイアウト要素のドラッグ移動) ========== */
+.is-positioned{
+  position:absolute !important;
+  z-index:5;
+}
+
+/* ========== EXPORTING ========== */
+.is-exporting [contenteditable="true"]:hover,
+.is-exporting [contenteditable="true"]:focus{
+  background:transparent !important;box-shadow:none !important;
+}
+.is-exporting .selectable.is-selected{
+  outline:none !important;box-shadow:none !important;background:inherit !important;
+}
+.is-exporting .photo-slot:hover::after,
+.is-exporting .logo-slot:hover::after{display:none !important}
+.is-exporting .free-image,
+.is-exporting .free-text{border-color:transparent !important}
+.is-exporting .fi-handle,.is-exporting .fi-delete,.is-exporting .fi-rotate,
+.is-exporting .ft-handle,.is-exporting .ft-delete,.is-exporting .ft-rotate{
+  display:none !important;
+}
+
+/* ========== TOAST ========== */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#1f2937;color:#fff;padding:11px 18px;border-radius:999px;
+  font-size:12px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  z-index:200;opacity:0;pointer-events:none;
+  transition:opacity .3s ease,transform .3s ease;
+}
+.toast.is-shown{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+/* ========== MODAL ========== */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(15,30,40,.6);
+  backdrop-filter:blur(4px);z-index:300;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-bg.is-shown{display:flex}
+.modal{
+  background:#fff;border-radius:14px;padding:22px;max-width:380px;width:100%;
+  box-shadow:0 24px 48px rgba(0,0,0,.2);
+}
+/* ========== MOVE PAD (十字キー) ========== */
+.move-pad{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);gap:5px;max-width:180px;margin:0 auto;
+}
+.move-pad-spacer{}
+.move-btn{
+  aspect-ratio:1;padding:8px;
+  border:1.5px solid rgba(42,153,153,.25);border-radius:8px;
+  background:#fff;color:#1b7373;
+  font-size:18px;font-weight:700;
+  display:grid;place-items:center;
+  transition:all .1s ease;user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.move-btn:active{
+  background:linear-gradient(135deg,#2a9999,#1b7373);
+  color:#fff;transform:scale(.93);
+}
+.move-btn--center{
+  background:rgba(42,153,153,.06);
+  font-size:14px;
+}
+.move-step{display:flex;gap:5px;justify-content:center;margin-top:10px}
+.move-step-btn{
+  padding:5px 11px;border:1px solid rgba(42,153,153,.25);
+  border-radius:999px;background:#fff;color:#1b7373;
+  font-size:11px;font-weight:500;
+  -webkit-tap-highlight-color:transparent;
+}
+.move-step-btn.is-active{
+  background:linear-gradient(135deg,#2a9999,#1b7373);
+  color:#fff;border-color:transparent;
+}
+.size-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.size-btn{
+  padding:9px;border:1.5px solid rgba(42,153,153,.25);
+  border-radius:8px;background:#fff;color:#1b7373;
+  font-size:12px;font-weight:500;
+  -webkit-tap-highlight-color:transparent;
+  transition:all .1s ease;
+}
+.size-btn:active{
+  background:linear-gradient(135deg,#2a9999,#1b7373);
+  color:#fff;transform:scale(.95);
+}
+
+/* スマホでハンドル大きく */
+@media (max-width:1024px){
+  .fi-handle,.ft-handle{
+    width:28px;height:28px;
+    bottom:-14px;right:-14px;border-width:3px;
+  }
+  .fi-delete,.ft-delete{
+    width:34px;height:34px;top:-17px;right:-17px;
+    font-size:18px;border-width:3px;
+  }
+  .fi-rotate,.ft-rotate{
+    width:30px;height:30px;top:-40px;
+    font-size:15px;border-width:2.5px;
+  }
+  .fi-rotate::before,.ft-rotate::before{
+    height:12px;top:30px;
+  }
+  /* 選択時の枠を太く */
+  .selectable.is-selected{
+    outline:3px solid #2a9999 !important;
+    outline-offset:3px;
+  }
+  .free-image.is-selected,.free-text.is-selected{
+    border-width:3px;
+  }
+}
+
+.modal h3{font-family:'Noto Serif JP',serif;font-size:17px;margin-bottom:6px;color:#1b7373}
+.modal p{font-size:12px;color:#6b7e7e;line-height:1.6;margin-bottom:14px}
+.modal__actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* ========== SAVE MODAL ========== */
+.modal--save{max-width:420px}
+.modal-input{
+  width:100%;padding:10px 14px;border:1.5px solid rgba(42,153,153,.25);
+  border-radius:8px;font-size:14px;color:#1f2937;background:#fff;
+  outline:none;margin-bottom:12px;transition:border-color .15s ease;
+}
+.modal-input:focus{border-color:#2a9999}
+
+/* ========== SAVED LIST ========== */
+.modal--list{max-width:520px;max-height:80vh;display:flex;flex-direction:column}
+.modal--list .saved-body{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  margin:0 -10px;padding:0 10px;
+}
+.saved-empty{text-align:center;padding:40px 20px;color:#a8b8b8;font-size:13px}
+.saved-empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+.saved-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px;border:1px solid rgba(42,153,153,.15);
+  border-radius:10px;margin-bottom:8px;
+  transition:all .15s ease;background:#fff;
+}
+.saved-item:hover{border-color:rgba(42,153,153,.4);background:rgba(42,153,153,.03)}
+.saved-item__thumb{
+  width:60px;height:60px;border-radius:8px;
+  background:linear-gradient(135deg,#b8dddc,#e8f3f2);
+  display:grid;place-items:center;flex-shrink:0;
+  font-size:24px;color:#1b7373;
+}
+.saved-item__info{flex:1;min-width:0}
+.saved-item__name{
+  font-size:14px;font-weight:500;color:#1f2937;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.saved-item__meta{font-size:11px;color:#6b7e7e}
+.saved-item__actions{display:flex;gap:4px;flex-shrink:0}
+.saved-item__btn{
+  width:32px;height:32px;border-radius:6px;border:none;
+  background:rgba(42,153,153,.08);color:#1b7373;
+  display:grid;place-items:center;font-size:14px;
+  transition:all .15s ease;
+}
+.saved-item__btn:hover{background:rgba(42,153,153,.15)}
+.saved-item__btn--danger{background:rgba(155,44,44,.08);color:#9b2c2c}
+.saved-item__btn--danger:hover{background:rgba(155,44,44,.15)}
+
+/* 現在編集中表示 */
+.current-design-indicator{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:6px;
+  background:rgba(42,153,153,.08);color:#1b7373;
+  font-size:11.5px;font-weight:500;
+  margin-left:6px;
+}
+.current-design-indicator strong{font-weight:600}
+.current-design-indicator__close{
+  width:16px;height:16px;border-radius:50%;
+  background:#1b7373;color:#fff;font-size:11px;font-weight:700;
+  display:grid;place-items:center;cursor:pointer;border:none;
+  line-height:1;
+}
+
+/* ========== COMMON TEMPLATE TOKENS ========== */
+.tpl *{box-sizing:border-box}
+.tpl > *:not(.bg-layer):not(.free-image):not(.free-text){position:relative;z-index:1}
+
+/* MENU TEMPLATE */
+.tpl-menu{
+  width:1055px;height:1491px;
+  background:#fff;
+  padding:50px 70px 45px;
+}
+.tpl-menu__deco-tl{position:absolute !important;top:-180px;left:-180px;width:280px;height:280px;background:linear-gradient(135deg,rgba(184,221,220,.5) 0%,transparent 70%);border-radius:50%;filter:blur(20px);z-index:0 !important;pointer-events:none}
+.tpl-menu__deco-br{position:absolute !important;bottom:-180px;right:-180px;width:280px;height:280px;background:linear-gradient(315deg,rgba(184,221,220,.5) 0%,transparent 70%);border-radius:50%;filter:blur(20px);z-index:0 !important;pointer-events:none}
+.tpl-menu__header{text-align:center;position:relative;margin-bottom:30px}
+.tpl-menu__leaf{width:95px;height:95px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.tpl-menu__leaf svg{width:100%;height:100%}
+.tpl-menu__brand{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:500;letter-spacing:.2em;color:#1b3a3a;margin-bottom:4px;line-height:1}
+.tpl-menu__title{font-family:'Noto Serif JP',serif;font-size:74px;font-weight:500;letter-spacing:.12em;color:#1b7373;margin-bottom:16px;line-height:1.05}
+.tpl-menu__sub{font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.18em;color:#1b7373;position:relative;display:inline-block;padding:0 60px}
+.tpl-menu__sub::before,.tpl-menu__sub::after{content:'';position:absolute;top:50%;width:44px;height:1px;background:#1b7373}
+.tpl-menu__sub::before{left:0}.tpl-menu__sub::after{right:0}
+.tpl-menu__grid{display:grid;grid-template-columns:1fr 1fr;gap:26px 36px}
+.tpl-menu__section{position:relative}
+.tpl-menu__section-title{background:linear-gradient(135deg,#b8dddc,#a0c8c7);text-align:center;padding:11px 0;border-radius:8px;font-family:'Noto Serif JP',serif;font-size:21px;font-weight:500;color:#1b3a3a;letter-spacing:.3em;margin-bottom:14px;position:relative}
+.tpl-menu__section-title::before,.tpl-menu__section-title::after{display:none}
+.tpl-menu__section-title::before{left:16px;display:none}
+.tpl-menu__section-title::after{right:16px;display:none}
+.tpl-menu__items{display:flex;flex-direction:column;gap:0}
+.tpl-menu__item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 5px;border-bottom:1px dashed rgba(42,153,153,.2);gap:12px}
+.tpl-menu__item:last-child{border-bottom:none}
+.tpl-menu__item-name{font-size:15.5px;line-height:1.5;color:#2c3e3e;flex:1}
+.tpl-menu__item-price{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:500;color:#1b7373;white-space:nowrap;flex-shrink:0}
+.tpl-menu__item-price small{font-size:11px;font-weight:400;margin-left:2px}
+.tpl-menu__item-staff{font-size:9.5px;font-family:'Noto Sans JP',sans-serif;padding:1px 5px;border-radius:3px;flex-shrink:0;white-space:nowrap;align-self:center;border:1px solid transparent}
+.tpl-menu__item-staff[data-s="全員"]{background:rgba(42,153,153,.12);color:#1b7373;border-color:rgba(42,153,153,.25)}
+.tpl-menu__item-staff[data-s="朝輝専用"]{background:rgba(27,58,58,.1);color:#1b3a3a;border-color:rgba(27,58,58,.2)}
+.tpl-menu__item-staff[data-s="朝輝里紗"]{background:rgba(91,123,80,.1);color:#3d6b35;border-color:rgba(91,123,80,.2)}
+.tpl-menu__item-staff[data-s="里紗久保"]{background:rgba(212,182,135,.25);color:#7a5c1e;border-color:rgba(212,182,135,.4)}
+.tpl-menu__item-staff[data-s="久保"]{background:rgba(80,100,180,.1);color:#2c3e8a;border-color:rgba(80,100,180,.2)}
+.tpl-menu__item-staff[data-s="里紗"]{background:rgba(180,80,120,.1);color:#8a2c50;border-color:rgba(180,80,120,.2)}
+.tpl-menu__item-staff[data-s="朝輝"]{background:rgba(27,58,58,.08);color:#1b3a3a;border-color:rgba(27,58,58,.15)}
+.tpl-menu__footer{position:absolute !important;bottom:22px;left:0;right:0;text-align:center;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.25em;color:#1b7373;z-index:2 !important}
+.tpl-menu__footer::before,.tpl-menu__footer::after{content:'';display:inline-block;width:55px;height:1px;background:#1b7373;vertical-align:middle;margin:0 13px}
+
+/* WOMEN TEMPLATE */
+.tpl-women{width:1055px;height:1491px;background:#fff;padding:55px 60px 40px}
+.tpl-women__dots{position:absolute !important;top:80px;right:80px;width:80px;height:80px;background-image:radial-gradient(circle,#d4b687 1.5px,transparent 1.5px);background-size:14px 14px;opacity:.4;pointer-events:none;z-index:0 !important}
+.tpl-women__header{text-align:center;position:relative;z-index:2;margin-bottom:30px}
+.tpl-women__leaf{width:90px;height:90px;margin:0 auto 8px;border-radius:8px}
+.tpl-women__brand{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:500;letter-spacing:.18em;color:#1b3a3a;margin-bottom:14px}
+.tpl-women__h1{font-family:'Noto Serif JP',serif;font-size:60px;font-weight:300;letter-spacing:.05em;color:#2c3e3e;line-height:1.2}
+.tpl-women__h1 em{font-style:normal;color:#1b7373;font-weight:400}
+.tpl-women__h2{font-family:'Noto Serif JP',serif;font-size:70px;font-weight:500;letter-spacing:.05em;color:#1b7373;line-height:1.2;margin-bottom:18px}
+.tpl-women__tags{font-family:'Noto Serif JP',serif;font-size:20px;letter-spacing:.2em;color:#2c3e3e;margin-bottom:8px}
+.tpl-women__lead{font-family:'Noto Serif JP',serif;font-size:22px;letter-spacing:.1em;color:#1b7373;font-weight:300}
+.tpl-women__recommended{background:#1b7373;color:#fff;display:inline-block;padding:7px 28px;border-radius:6px;font-family:'Noto Serif JP',serif;font-size:18px;letter-spacing:.2em;margin:24px auto 18px;position:relative;left:50%;transform:translateX(-50%)}
+.tpl-women__cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:28px}
+.tpl-women__card{background:#fff;border:1px solid rgba(42,153,153,.2);border-radius:12px;padding:18px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.tpl-women__card-num{position:absolute;top:-14px;left:18px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2a9999,#1b7373);color:#fff;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600}
+.tpl-women__card-photo{width:100%;aspect-ratio:1.3;background:#faf8f3;border-radius:8px;margin-bottom:14px;margin-top:8px;display:grid;place-items:center;color:#a8b8b8;font-size:13px;border:1px solid #ede8db}
+.tpl-women__card-photo-icon{font-size:22px;margin-bottom:4px}
+.tpl-women__card-name{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:500;color:#2c3e3e;text-align:center;margin-bottom:4px}
+.tpl-women__card-detail{text-align:center;font-size:12px;color:#6b7e7e;margin-bottom:10px;line-height:1.4}
+.tpl-women__card-price-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px}
+.tpl-women__card-duration{background:#b8dddc;color:#1b3a3a;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:500}
+.tpl-women__card-price{font-family:'Noto Serif JP',serif;font-size:24px;font-weight:500;color:#1b7373}
+.tpl-women__sections{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.tpl-women__sec{background:#f4faf9;border-radius:10px;padding:14px 18px}
+.tpl-women__sec-title{text-align:center;font-family:'Noto Serif JP',serif;font-size:15px;color:#1b7373;letter-spacing:.15em;margin-bottom:10px;font-weight:500}
+.tpl-women__sec-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11.5px;border-bottom:1px dashed rgba(42,153,153,.15);gap:8px}
+.tpl-women__sec-row:last-child{border-bottom:none}
+.tpl-women__sec-row span:last-child{font-family:'Noto Serif JP',serif;font-weight:500;color:#1b7373;white-space:nowrap;flex-shrink:0}
+.tpl-women__features{display:flex;justify-content:space-around;align-items:center;padding:14px 8px;border-top:1px solid rgba(42,153,153,.15);border-bottom:1px solid rgba(42,153,153,.15);margin-bottom:14px}
+.tpl-women__feature{display:flex;align-items:center;gap:6px;font-size:12px;color:#2c3e3e}
+.tpl-women__feature-icon{width:22px;height:22px;border-radius:50%;background:rgba(42,153,153,.1);display:grid;place-items:center;color:#1b7373;font-size:12px}
+.tpl-women__lead-bottom{text-align:center;font-size:13px;color:#2c3e3e;letter-spacing:.1em;margin-bottom:18px}
+.tpl-women__contact{background:linear-gradient(135deg,#b8dddc,#a0c8c7);border-radius:10px;padding:14px 22px;display:grid;grid-template-columns:1fr 1.5fr;gap:18px;align-items:center}
+.tpl-women__contact-brand{font-family:'Cormorant Garamond',serif;font-size:24px;letter-spacing:.1em;color:#1b3a3a;line-height:1.2}
+.tpl-women__contact-brand small{display:block;font-family:'Noto Sans JP',sans-serif;font-size:10px;letter-spacing:.18em;color:#1b7373;margin-bottom:2px}
+.tpl-women__contact-info{font-size:12px;color:#1b3a3a;line-height:1.7}
+.tpl-women__contact-info .tel{font-family:'Cormorant Garamond',serif;font-size:18px;color:#1b7373;letter-spacing:.05em}
+
+/* MEN TEMPLATE */
+.tpl-men{width:1055px;height:1491px;background:#fff;padding:55px 55px 40px}
+.tpl-men__header{display:grid;grid-template-columns:1fr auto;gap:30px;margin-bottom:32px;position:relative}
+.tpl-men__brand{font-family:'Cormorant Garamond',serif;font-size:42px;letter-spacing:.15em;color:#1a3a5c;margin-bottom:4px;display:flex;align-items:center;gap:14px}
+.tpl-men__leaf-mini{width:60px;height:60px;flex-shrink:0;border-radius:6px}
+.tpl-men__h1{font-family:'Noto Serif JP',serif;font-size:90px;font-weight:700;letter-spacing:.02em;color:#1a3a5c;line-height:1;margin-top:10px}
+.tpl-men__sub{font-family:'Noto Serif JP',serif;font-size:24px;letter-spacing:.15em;color:#2a9999;margin-top:14px;display:flex;align-items:center;gap:14px}
+.tpl-men__sub::before{content:'';width:60px;height:2px;background:#2a9999;display:inline-block}
+.tpl-men__lead{font-family:'Noto Serif JP',serif;font-size:28px;font-weight:500;color:#1a3a5c;letter-spacing:.08em;margin-top:18px}
+.tpl-men__silhouette{width:160px;height:200px;background:linear-gradient(135deg,rgba(184,221,220,.6),rgba(42,153,153,.3));clip-path:polygon(45% 0%,55% 0%,65% 20%,68% 35%,62% 50%,75% 70%,80% 100%,20% 100%,25% 70%,38% 50%,32% 35%,35% 20%);margin-top:10px}
+.tpl-men__featured{background:#1a3a5c;color:#fff;padding:9px 22px;border-radius:6px;display:inline-block;font-family:'Noto Serif JP',serif;font-size:17px;letter-spacing:.2em;margin-bottom:14px}
+.tpl-men__cards{display:flex;flex-direction:column;gap:10px;margin-bottom:30px}
+.tpl-men__card{background:#fff;border:2px solid #2a9999;border-radius:10px;padding:14px 22px;display:grid;grid-template-columns:auto 1fr auto auto;gap:18px;align-items:center}
+.tpl-men__card-icon{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#2a9999,#1b7373);color:#fff;display:grid;place-items:center;font-size:24px}
+.tpl-men__card-name{font-family:'Noto Serif JP',serif;font-size:21px;font-weight:500;color:#1a3a5c}
+.tpl-men__card-dur{background:#e8f3f2;color:#1b7373;padding:5px 12px;border-radius:6px;font-size:13px;font-weight:500;border:1px solid rgba(42,153,153,.3)}
+.tpl-men__card-price{font-family:'Noto Serif JP',serif;font-size:26px;font-weight:600;color:#1a3a5c;min-width:140px;text-align:right}
+.tpl-men__list-title{background:#1a3a5c;color:#fff;padding:8px 22px;border-radius:6px;display:inline-block;font-family:'Noto Serif JP',serif;font-size:16px;letter-spacing:.2em;margin-bottom:12px}
+.tpl-men__list{border:1.5px solid #1a3a5c;border-radius:10px;padding:14px 22px}
+.tpl-men__list-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px dashed rgba(26,58,92,.2);font-size:13px;gap:14px}
+.tpl-men__list-row:last-child{border-bottom:none}
+.tpl-men__list-row::before{content:'■';color:#2a9999;margin-right:8px;font-size:10px}
+.tpl-men__list-name{flex:1;color:#2c3e3e}
+.tpl-men__list-price{font-family:'Noto Serif JP',serif;color:#1a3a5c;font-weight:500;white-space:nowrap}
+.tpl-men__problems{margin-top:22px;padding:16px;background:#f4faf9;border-radius:10px}
+.tpl-men__problems-title{text-align:center;font-size:14px;color:#1a3a5c;letter-spacing:.1em;margin-bottom:12px;font-weight:500}
+.tpl-men__problems-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.tpl-men__problem{text-align:center;font-size:12px;color:#2c3e3e}
+.tpl-men__problem-icon{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#2a9999,#1b7373);color:#fff;margin:0 auto 6px;display:grid;place-items:center;font-size:20px}
+.tpl-men__footer{background:#1a3a5c;color:#fff;padding:18px 24px;border-radius:10px;display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;margin-top:24px}
+.tpl-men__footer-leaf{width:40px;height:40px;border-radius:6px}
+.tpl-men__footer-brand{font-family:'Cormorant Garamond',serif;font-size:24px;letter-spacing:.1em}
+.tpl-men__footer-brand small{display:block;font-family:'Noto Sans JP',sans-serif;font-size:10px;letter-spacing:.18em;color:#b8dddc;margin-top:-2px}
+.tpl-men__footer-info{font-size:12px;line-height:1.7;color:#e8f3f2}
+.tpl-men__footer-tel{font-family:'Cormorant Garamond',serif;font-size:24px;color:#fff;letter-spacing:.05em}
+
+/* REFERRAL TEMPLATE */
+.tpl-referral{width:1613px;height:975px;background:#fff;padding:50px 60px}
+.tpl-referral__border{position:absolute !important;inset:24px;border:2px solid #1b7373;border-radius:4px;pointer-events:none;z-index:1 !important}
+.tpl-referral__corner-tl{position:absolute !important;top:0;left:0;width:200px;height:200px;background:linear-gradient(135deg,rgba(42,153,153,.15) 0%,transparent 70%);clip-path:polygon(0 0,100% 0,0 100%);pointer-events:none;z-index:0 !important}
+.tpl-referral__corner-br{position:absolute !important;bottom:0;right:0;width:200px;height:200px;background:linear-gradient(315deg,rgba(42,153,153,.15) 0%,transparent 70%);clip-path:polygon(100% 0,100% 100%,0 100%);pointer-events:none;z-index:0 !important}
+.tpl-referral__header{display:grid;grid-template-columns:auto 1fr;gap:60px;align-items:center;margin-bottom:50px;position:relative;z-index:2}
+.tpl-referral__logo{display:flex;flex-direction:column;align-items:center;gap:12px}
+.tpl-referral__leaf{width:140px;height:140px;border-radius:8px}
+.tpl-referral__logo-text{font-family:'Cormorant Garamond',serif;font-size:60px;letter-spacing:.18em;color:#1b3a3a}
+.tpl-referral__title-area{position:relative;text-align:center}
+.tpl-referral__title{font-family:'Noto Serif JP',serif;font-size:90px;font-weight:400;letter-spacing:.15em;color:#1b7373;line-height:1;display:flex;align-items:center;justify-content:center;gap:20px}
+.tpl-referral__title::before,.tpl-referral__title::after{content:'◆';font-size:18px;color:#1b7373;opacity:.7}
+.tpl-referral__title-line{width:80%;height:1px;background:#1b7373;margin:14px auto}
+.tpl-referral__title-sub{font-family:'Noto Serif JP',serif;font-size:30px;letter-spacing:.15em;color:#1b7373;font-weight:400}
+.tpl-referral__benefits{display:flex;flex-direction:column;gap:20px;margin-bottom:40px;position:relative;z-index:2}
+.tpl-referral__benefit{display:grid;grid-template-columns:340px 1fr;align-items:center;border:2px solid #1b7373;border-radius:6px;overflow:hidden}
+.tpl-referral__benefit-label{background:linear-gradient(135deg,#2a9999,#1b7373);color:#fff;padding:24px 40px;font-family:'Noto Serif JP',serif;font-size:32px;letter-spacing:.1em;text-align:center;clip-path:polygon(0 0,100% 0,90% 100%,0 100%)}
+.tpl-referral__benefit-label--light{background:linear-gradient(135deg,#b8dddc,#a0c8c7);color:#1b3a3a}
+.tpl-referral__benefit-body{padding:24px 40px;display:flex;align-items:baseline;gap:16px;font-family:'Noto Serif JP',serif;color:#1b7373}
+.tpl-referral__benefit-pre{font-size:24px;color:#2c3e3e}
+.tpl-referral__benefit-amount{font-size:60px;font-weight:600}
+.tpl-referral__benefit-unit{font-size:30px;font-weight:500}
+.tpl-referral__names{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:24px;position:relative;z-index:2}
+.tpl-referral__name-field{padding:8px 0}
+.tpl-referral__name-label{font-size:18px;color:#6b7e7e;margin-bottom:8px}
+.tpl-referral__name-line{height:1px;background:#1b7373;width:100%}
+.tpl-referral__notes{text-align:center;font-size:16px;color:#6b7e7e;position:relative;z-index:2;letter-spacing:.05em}
+.tpl-referral__notes span{margin:0 18px}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width:1024px){
+  .stage-wrap{grid-template-columns:1fr}
+  .dock{
+    position:fixed;bottom:0;left:0;right:0;top:auto;
+    border-radius:18px 18px 0 0;
+    max-height:55vh;height:55vh;z-index:90;
+    box-shadow:0 -8px 30px rgba(0,0,0,.15);
+    transform:translateY(100%);transition:transform .3s ease;
+    padding:0;
+    display:flex;flex-direction:column;
+  }
+  .dock.is-shown{transform:translateY(0)}
+  .dock__handle{
+    width:40px;height:4px;background:#cbd5dd;border-radius:999px;
+    margin:10px auto 4px;flex-shrink:0;
+  }
+  .dock__header-mobile{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:6px 16px 10px;border-bottom:1px solid rgba(42,153,153,.1);
+    flex-shrink:0;
+  }
+  .dock__close-mobile{
+    width:32px;height:32px;border-radius:50%;
+    background:rgba(42,153,153,.1);color:#1b7373;
+    display:grid;place-items:center;font-size:18px;font-weight:600;
+    border:none;
+  }
+  .dock__close-mobile:active{background:rgba(42,153,153,.2)}
+  .dock__body-wrap{
+    flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:14px 18px 30px;
+  }
+  .dock__empty{display:none}
+  /* バックドロップ */
+  .dock-backdrop{
+    position:fixed;inset:0;background:rgba(15,30,40,.3);
+    z-index:89;opacity:0;pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .dock-backdrop.is-shown{opacity:1;pointer-events:auto}
+}
+@media (min-width:1025px){
+  .dock__handle,.dock__header-mobile,.dock-backdrop{display:none}
+}
+@media (max-width:768px){
+  .app-header__inner{flex-direction:column;align-items:flex-start;gap:8px}
+  .stage-wrap{padding:8px 6px 100px;gap:8px}
+  .canvas-wrap{padding:6px;border-radius:8px}
+  .stage__help{display:none}
+  .tool-btn{padding:5px 9px;font-size:11px}
+  .tool-hint{display:none}
+  .toolpanel__inner{padding:6px 10px;gap:4px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-header__inner">
+    <div class="app-brand">
+      <div class="app-brand__logo">K</div>
+      <div class="app-brand__text">KANOA Design Studio<small>v3 · PRO MODE</small></div>
+    </div>
+    <div class="app-actions">
+      <button class="btn btn--ghost" id="btn-saved-list">📂 保存済み</button>
+      <button class="btn btn--ghost" id="btn-save">💾 保存</button>
+      <button class="btn btn--ghost" id="btn-reset">リセット</button>
+      <button class="btn btn--danger" id="btn-reset-all" title="全テンプレを工場出荷状態に">🔄 全初期化</button>
+      <button class="btn btn--primary" id="btn-download">📥 PNG保存</button>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="template-bar">
+  <div class="template-bar__inner">
+    <button class="tab-btn is-active" data-template="menu">院内メニュー①</button>
+    <button class="tab-btn" data-template="menu2">院内メニュー②</button>
+    <button class="tab-btn" data-template="women">女性向け</button>
+    <button class="tab-btn" data-template="men">男性向け</button>
+    <button class="tab-btn" data-template="referral">紹介カード</button>
+    <span class="current-design-indicator" id="current-indicator" style="display:none">
+      📝 編集中: <strong id="current-name">-</strong>
+      <button class="current-design-indicator__close" id="current-close" title="編集を終了">×</button>
+    </span>
+  </div>
+</nav>
+
+<!-- TOOLPANEL -->
+<div class="toolpanel">
+  <div class="toolpanel__inner">
+    <button class="tool-btn" id="btn-add-image">🖼 画像</button>
+    <button class="tool-btn" id="btn-add-text">📝 テキスト</button>
+    <button class="tool-btn" id="btn-add-rect">⬜ 四角</button>
+    <button class="tool-btn" id="btn-add-circle">⭕ 丸</button>
+    <button class="tool-btn" id="btn-add-line">📏 ライン</button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" id="btn-select-all">🔘 すべて選択</button>
+    <button class="tool-btn" id="btn-deselect">✖ 選択解除</button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" id="btn-set-bg">🎨 背景</button>
+    <button class="tool-btn" id="btn-clear-bg">背景クリア</button>
+  </div>
+</div>
+
+<!-- BG MENU -->
+<div class="bg-menu" id="bg-menu">
+  <div class="bg-menu__title">プリセット背景</div>
+  <div class="bg-presets" id="bg-presets"></div>
+  <div class="bg-menu__title" style="margin-top:8px">画像をアップロード</div>
+  <button class="tool-btn" id="btn-upload-bg" style="width:100%;justify-content:center">📁 ファイルを選択</button>
+  <input type="file" id="bg-file-input" accept="image/*" style="display:none">
+</div>
+
+<!-- MAIN STAGE -->
+<div class="stage-wrap">
+  <main class="stage">
+    <div class="stage__help">
+      <div class="stage__help-icon">i</div>
+      <div>
+        <strong>使い方：</strong> 文字や画像を<strong>タップ</strong>すると右パネル（スマホは下から）が出る／パネルの<strong>⬆⬇⬅➡ボタン</strong>で位置調整、<strong>拡大/縮小</strong>で大きさ調整／編集は<strong>ダブルタップ</strong>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <div class="canvas-frame" id="canvas-frame">
+        <!-- ============ TEMPLATE: 院内メニュー ============ -->
+        <div class="tpl tpl-menu" data-template-id="menu">
+          <div class="bg-layer" data-bg-layer="menu"></div>
+          <div class="tpl-menu__deco-tl"></div>
+          <div class="tpl-menu__deco-br"></div>
+          <div class="tpl-menu__header">
+            <div class="tpl-menu__leaf logo-slot" data-logo-slot="menu">
+              <svg viewBox="0 0 100 100"><defs><linearGradient id="leafG1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2a9999"/><stop offset="100%" stop-color="#1b3a3a"/></linearGradient></defs><path d="M50 90 Q20 60 25 25 Q45 35 50 90 Z" fill="url(#leafG1)"/><path d="M50 90 Q80 60 75 25 Q55 35 50 90 Z" fill="url(#leafG1)" opacity="0.85"/></svg>
+            </div>
+            <div class="tpl-menu__brand" contenteditable="true">KANOA</div>
+            <h1 class="tpl-menu__title" contenteditable="true">院内メニュー</h1>
+            <div class="tpl-menu__sub" contenteditable="true">美容整体・姿勢改善・疲労回復</div>
+          </div>
+          <div class="tpl-menu__grid">
+            <div>
+              <div class="tpl-menu__section">
+                <div class="tpl-menu__section-title" contenteditable="true">整 体</div>
+                <div class="tpl-menu__items">
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）60分</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">4,800<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）75分</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">5,900<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）90分</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">スタイル改善＆疲労回復 120分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋ストレッチ 90分♪</div><span class="tpl-menu__item-staff" data-s="久保" contenteditable="true">久保</span><div class="tpl-menu__item-price" contenteditable="true">5,500<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋ストレッチ 90分♪</div><span class="tpl-menu__item-staff" data-s="久保" contenteditable="true">久保</span><div class="tpl-menu__item-price" contenteditable="true">8,800<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">ドライヘッドマッサージ30分＋日本古式整体45分/75分</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">6,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">日本古式整体＋内蔵調整＋ドライリンパマッサージ 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用" contenteditable="true">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">8,800<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">院長プレミアム♪完全オーダーメイド整体 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用" contenteditable="true">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">全身スタイル改善/ボキボキしない全身姿勢矯正 60分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">6,200<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">全身スタイル改善/ボキボキしない全身姿勢矯正 90分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">9,000<small>円</small></div></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="tpl-menu__section">
+                <div class="tpl-menu__section-title" contenteditable="true">美容整体・調整</div>
+                <div class="tpl-menu__items">
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">自律神経の乱れ＆脳疲労/頭蓋骨/首/肩/顔ツボ 90分</div><span class="tpl-menu__item-staff" data-s="朝輝専用" contenteditable="true">朝輝専用</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">O脚・X脚矯正 90分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">造顔・お顔の歪み調整 60分</div><span class="tpl-menu__item-staff" data-s="朝輝" contenteditable="true">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">6,000<small>円</small></div></div>
+                </div>
+              </div>
+              <div class="tpl-menu__section" style="margin-top:20px">
+                <div class="tpl-menu__section-title" contenteditable="true">リ ン パ オ イ ル</div>
+                <div class="tpl-menu__items">
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 40分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">4,900<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 60分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">6,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパオイル 90分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">8,900<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 60分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">6,500<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 40分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">7,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">☆整う☆美容整体付きリンパオイル 90分（全身）</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">12,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">リンパオイル30分＋日本古式整体40分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">10,100<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">深層リンパ90分＋ヘッドスパ20分＋整体40分/計150分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">18,700<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">リンパオイル90分＋日本古式整体30分</div><span class="tpl-menu__item-staff" data-s="里紗久保" contenteditable="true">里紗・久保</span><div class="tpl-menu__item-price" contenteditable="true">15,100<small>円</small></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tpl-menu__footer" contenteditable="true">トータルボディメンテナンス KANOA</div>
+        </div>
+
+        <!-- MENU2 -->
+        <div class="tpl tpl-menu" data-template-id="menu2" style="display:none">
+          <div class="bg-layer" data-bg-layer="menu2"></div>
+          <div class="tpl-menu__deco-tl"></div>
+          <div class="tpl-menu__deco-br"></div>
+          <div class="tpl-menu__header">
+            <div class="tpl-menu__leaf logo-slot" data-logo-slot="menu2" style="margin:0 auto 4px">
+              <svg viewBox="0 0 100 100"><defs><linearGradient id="leafGm2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2a9999"/><stop offset="100%" stop-color="#1b3a3a"/></linearGradient></defs><path d="M50 90 Q20 60 25 25 Q45 35 50 90 Z" fill="url(#leafGm2)"/><path d="M50 90 Q80 60 75 25 Q55 35 50 90 Z" fill="url(#leafGm2)" opacity="0.85"/></svg>
+            </div>
+            <div class="tpl-menu__brand" contenteditable="true">KANOA</div>
+            <h1 class="tpl-menu__title" contenteditable="true">院内メニュー②</h1>
+            <p class="tpl-menu__sub" contenteditable="true">マタニティ・ピラティス・エステ</p>
+          </div>
+          <div class="tpl-menu__grid">
+            <div>
+              <div class="tpl-menu__section">
+                <div class="tpl-menu__section-title" contenteditable="true">マタニティ</div>
+                <div class="tpl-menu__items">
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">≪マタニティ整体A≫ 整体 60分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">≪マタニティ整体B≫ 整体60分＋足つぼオイル20分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">5,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">産後の骨盤矯正 45分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,000<small>円</small></div></div>
+                </div>
+              </div>
+              <div class="tpl-menu__section" style="margin-top:20px">
+                <div class="tpl-menu__section-title" contenteditable="true">ピラティス</div>
+                <div class="tpl-menu__items">
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">マシンピラティス 60分</div><span class="tpl-menu__item-staff" data-s="朝輝" contenteditable="true">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">6,000<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">姿勢＆骨盤矯正45分＋マシンピラティスで引き締め60分</div><span class="tpl-menu__item-staff" data-s="朝輝" contenteditable="true">朝輝</span><div class="tpl-menu__item-price" contenteditable="true">9,000<small>円</small></div></div>
+                </div>
+              </div>
+              <div class="tpl-menu__section" style="margin-top:20px">
+                <div class="tpl-menu__section-title" contenteditable="true">ヘッドマッサージ</div>
+                <div class="tpl-menu__items">
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">極楽ヘッドマッサージ 30分</div><span class="tpl-menu__item-staff" data-s="朝輝里紗" contenteditable="true">朝輝・里紗</span><div class="tpl-menu__item-price" contenteditable="true">3,600<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">耳ツボ</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">1,100<small>円</small></div></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="tpl-menu__section">
+                <div class="tpl-menu__section-title" contenteditable="true">フェイシャル・エステ</div>
+                <div class="tpl-menu__items">
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">フェイシャルエステ 40分</div><span class="tpl-menu__item-staff" data-s="里紗" contenteditable="true">里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,900<small>円</small></div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">キャビテーション＋痩身リンパマッサージ 60分</div><span class="tpl-menu__item-staff" data-s="里紗" contenteditable="true">里紗</span><div class="tpl-menu__item-price" contenteditable="true">10,000<small>円</small>〜</div></div>
+                  <div class="tpl-menu__item"><div class="tpl-menu__item-name" contenteditable="true">滝汗遠赤マット 30分</div><span class="tpl-menu__item-staff" data-s="里紗" contenteditable="true">里紗</span><div class="tpl-menu__item-price" contenteditable="true">4,000<small>円</small></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tpl-menu__footer" contenteditable="true">トータルボディメンテナンス KANOA</div>
+        </div>
+
+        <!-- WOMEN -->
+        <div class="tpl tpl-women" data-template-id="women" style="display:none">
+          <div class="bg-layer" data-bg-layer="women"></div>
+          <div class="tpl-women__dots"></div>
+          <div class="tpl-women__header">
+            <div class="tpl-women__leaf logo-slot" data-logo-slot="women" style="margin:0 auto 8px">
+              <svg viewBox="0 0 100 100"><defs><linearGradient id="leafG2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2a9999"/><stop offset="100%" stop-color="#1b3a3a"/></linearGradient></defs><path d="M50 90 Q20 60 25 25 Q45 35 50 90 Z" fill="url(#leafG2)"/><path d="M50 90 Q80 60 75 25 Q55 35 50 90 Z" fill="url(#leafG2)" opacity="0.85"/></svg>
+            </div>
+            <div class="tpl-women__brand" contenteditable="true">KANOA</div>
+            <div class="tpl-women__h1" contenteditable="true"><em>女性</em>のための</div>
+            <div class="tpl-women__h2" contenteditable="true">整体・リンパ・ピラティス</div>
+            <div class="tpl-women__tags" contenteditable="true">マタニティ / 美容整体 / リンパオイル / ピラティス</div>
+            <div class="tpl-women__lead" contenteditable="true">今の身体に、やさしく寄り添うケア。</div>
+          </div>
+          <div class="tpl-women__recommended" contenteditable="true">おすすめメニュー</div>
+          <div class="tpl-women__cards">
+            <div class="tpl-women__card">
+              <div class="tpl-women__card-num">1</div>
+              <div class="tpl-women__card-photo photo-slot" data-photo-id="women-photo-1"><div style="text-align:center"><div class="tpl-women__card-photo-icon">📷</div>写真差し替えOK</div></div>
+              <div class="tpl-women__card-name" contenteditable="true">美容整体付きリンパオイル</div>
+              <div class="tpl-women__card-price-row"><span class="tpl-women__card-duration" contenteditable="true">60分</span><span class="tpl-women__card-price" contenteditable="true">6,500円</span></div>
+            </div>
+            <div class="tpl-women__card">
+              <div class="tpl-women__card-num">2</div>
+              <div class="tpl-women__card-photo photo-slot" data-photo-id="women-photo-2"><div style="text-align:center"><div class="tpl-women__card-photo-icon">📷</div>写真差し替えOK</div></div>
+              <div class="tpl-women__card-name" contenteditable="true">マタニティ整体B</div>
+              <div class="tpl-women__card-detail" contenteditable="true">60分＋足つぼオイル20分</div>
+              <div class="tpl-women__card-price-row"><span class="tpl-women__card-duration" contenteditable="true">60分+20分</span><span class="tpl-women__card-price" contenteditable="true">5,600円</span></div>
+            </div>
+            <div class="tpl-women__card">
+              <div class="tpl-women__card-num">3</div>
+              <div class="tpl-women__card-photo photo-slot" data-photo-id="women-photo-3"><div style="text-align:center"><div class="tpl-women__card-photo-icon">📷</div>写真差し替えOK</div></div>
+              <div class="tpl-women__card-name" contenteditable="true">姿勢＆骨盤矯正45分＋マシンピラティス60分</div>
+              <div class="tpl-women__card-price-row"><span class="tpl-women__card-duration" contenteditable="true">105分</span><span class="tpl-women__card-price" contenteditable="true">9,000円</span></div>
+            </div>
+          </div>
+          <div class="tpl-women__sections">
+            <div class="tpl-women__sec">
+              <div class="tpl-women__sec-title" contenteditable="true">【美容整体】</div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">自律神経の乱れ＆脳疲労/頭蓋骨/首/肩/顔ツボ 90分</span><span contenteditable="true">10,000円</span></div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">O脚・X脚矯正 90分</span><span contenteditable="true">7,000円</span></div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">造顔・お顔の歪み調整 60分</span><span contenteditable="true">6,000円</span></div>
+            </div>
+            <div class="tpl-women__sec">
+              <div class="tpl-women__sec-title" contenteditable="true">【リンパ】</div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">☆整う☆美容整体付きリンパオイル 40分</span><span contenteditable="true">7,000円</span></div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">☆整う☆美容整体付きリンパオイル 90分(全身)</span><span contenteditable="true">12,000円</span></div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">リンパオイル30分＋日本古式整体40分</span><span contenteditable="true">10,100円</span></div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">深層リンパ90分＋ヘッドスパ20分＋整体40分/計150分</span><span contenteditable="true">18,700円</span></div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">リンパオイル90分＋日本古式整体30分</span><span contenteditable="true">15,100円</span></div>
+            </div>
+            <div class="tpl-women__sec">
+              <div class="tpl-women__sec-title" contenteditable="true">【マタニティ】</div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">≪マタニティ整体A≫ 整体60分</span><span contenteditable="true">4,600円</span></div>
+            </div>
+            <div class="tpl-women__sec">
+              <div class="tpl-women__sec-title" contenteditable="true">【ピラティス】</div>
+              <div class="tpl-women__sec-row"><span contenteditable="true">マシンピラティス 60分</span><span contenteditable="true">6,000円</span></div>
+            </div>
+          </div>
+          <div class="tpl-women__features">
+            <div class="tpl-women__feature"><div class="tpl-women__feature-icon">📅</div><span contenteditable="true">完全予約制</span></div>
+            <div class="tpl-women__feature"><div class="tpl-women__feature-icon">👗</div><span contenteditable="true">お着替えあり</span></div>
+            <div class="tpl-women__feature"><div class="tpl-women__feature-icon">🛋</div><span contenteditable="true">プライベート空間</span></div>
+          </div>
+          <div class="tpl-women__lead-bottom" contenteditable="true">安心してリラックスできる時間をお過ごしいただけます。</div>
+          <div class="tpl-women__contact">
+            <div class="tpl-women__contact-brand"><small contenteditable="true">トータルボディメンテナンス</small><span contenteditable="true">KANOA</span></div>
+            <div class="tpl-women__contact-info">
+              <div><span contenteditable="true">代表</span>　<strong contenteditable="true">岡 朝輝</strong></div>
+              <div>📍 <span contenteditable="true">大阪市東成区東小橋1-8-23-207</span></div>
+              <div>📞 TEL: <span class="tel" contenteditable="true">06-4977-4297</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEN -->
+        <div class="tpl tpl-men" data-template-id="men" style="display:none">
+          <div class="bg-layer" data-bg-layer="men"></div>
+          <div class="tpl-men__header">
+            <div>
+              <div class="tpl-men__brand"><span class="tpl-men__leaf-mini logo-slot" data-logo-slot="men"><svg viewBox="0 0 100 100"><defs><linearGradient id="leafG3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2a9999"/><stop offset="100%" stop-color="#1a3a5c"/></linearGradient></defs><path d="M50 90 Q20 60 25 25 Q45 35 50 90 Z" fill="url(#leafG3)"/><path d="M50 90 Q80 60 75 25 Q55 35 50 90 Z" fill="url(#leafG3)" opacity="0.85"/></svg></span><span contenteditable="true">KANOA</span></div>
+              <h1 class="tpl-men__h1" contenteditable="true">男性向けメニュー</h1>
+              <div class="tpl-men__sub" contenteditable="true">整体 × 姿勢改善 × マシンピラティス</div>
+              <div class="tpl-men__lead" contenteditable="true">不調を整え、姿勢と動きを変える。</div>
+            </div>
+            <div class="tpl-men__silhouette"></div>
+          </div>
+          <div class="tpl-men__featured" contenteditable="true">おすすめメニュー</div>
+          <div class="tpl-men__cards">
+            <div class="tpl-men__card"><div class="tpl-men__card-icon">🛏</div><div class="tpl-men__card-name" contenteditable="true">日本古式整体</div><div class="tpl-men__card-dur" contenteditable="true">60分</div><div class="tpl-men__card-price" contenteditable="true">4,800円</div></div>
+            <div class="tpl-men__card"><div class="tpl-men__card-icon">🦴</div><div class="tpl-men__card-name" contenteditable="true">全身姿勢矯正</div><div class="tpl-men__card-dur" contenteditable="true">60分</div><div class="tpl-men__card-price" contenteditable="true">6,200円</div></div>
+            <div class="tpl-men__card"><div class="tpl-men__card-icon">🤸</div><div class="tpl-men__card-name" contenteditable="true">マシンピラティス</div><div class="tpl-men__card-dur" contenteditable="true">60分</div><div class="tpl-men__card-price" contenteditable="true">6,000円</div></div>
+            <div class="tpl-men__card"><div class="tpl-men__card-icon">💪</div><div class="tpl-men__card-name" contenteditable="true">姿勢＆骨盤矯正45分＋マシンピラティス60分</div><div class="tpl-men__card-dur" contenteditable="true">105分</div><div class="tpl-men__card-price" contenteditable="true">9,000円</div></div>
+          </div>
+          <div class="tpl-men__list-title" contenteditable="true">男性向け 全メニュー一覧</div>
+          <div class="tpl-men__list">
+            <div class="tpl-men__list-row"><span class="tpl-men__list-name" contenteditable="true">日本古式整体（首肩こり/巻肩/骨盤矯正）</span><span class="tpl-men__list-price" contenteditable="true">75分 5,900円 / 90分 7,000円</span></div>
+            <div class="tpl-men__list-row"><span class="tpl-men__list-name" contenteditable="true">スタイル改善＆疲労回復</span><span class="tpl-men__list-price" contenteditable="true">120分 10,000円</span></div>
+            <div class="tpl-men__list-row"><span class="tpl-men__list-name" contenteditable="true">日本古式整体＋ストレッチ</span><span class="tpl-men__list-price" contenteditable="true">90分 5,500円〜8,800円</span></div>
+            <div class="tpl-men__list-row"><span class="tpl-men__list-name" contenteditable="true">ドライヘッドマッサージ30分＋日本古式整体45分/75分</span><span class="tpl-men__list-price" contenteditable="true">6,600円</span></div>
+            <div class="tpl-men__list-row"><span class="tpl-men__list-name" contenteditable="true">院長プレミアム♪完全オーダーメイド整体</span><span class="tpl-men__list-price" contenteditable="true">90分 7,000円</span></div>
+          </div>
+          <div class="tpl-men__problems">
+            <div class="tpl-men__problems-title" contenteditable="true">こんなお悩みの方におすすめ</div>
+            <div class="tpl-men__problems-grid">
+              <div class="tpl-men__problem"><div class="tpl-men__problem-icon">😣</div><span contenteditable="true">肩こり</span></div>
+              <div class="tpl-men__problem"><div class="tpl-men__problem-icon">😩</div><span contenteditable="true">腰のだるさ</span></div>
+              <div class="tpl-men__problem"><div class="tpl-men__problem-icon">🧍</div><span contenteditable="true">姿勢改善</span></div>
+              <div class="tpl-men__problem"><div class="tpl-men__problem-icon">⚡</div><span contenteditable="true">疲労回復</span></div>
+              <div class="tpl-men__problem"><div class="tpl-men__problem-icon">🏃</div><span contenteditable="true">運動不足対策</span></div>
+            </div>
+          </div>
+          <div class="tpl-men__footer">
+            <div class="tpl-men__footer-leaf logo-slot" data-logo-slot="men-footer"><svg viewBox="0 0 100 100"><path d="M50 90 Q20 60 25 25 Q45 35 50 90 Z" fill="#b8dddc"/><path d="M50 90 Q80 60 75 25 Q55 35 50 90 Z" fill="#b8dddc" opacity="0.8"/></svg></div>
+            <div>
+              <div class="tpl-men__footer-brand"><span contenteditable="true">KANOA</span><small contenteditable="true">トータルボディメンテナンス</small></div>
+              <div class="tpl-men__footer-info"><span contenteditable="true">代表 岡 朝輝</span>　|　<span contenteditable="true">大阪市東成区東小橋1-8-23-207</span></div>
+            </div>
+            <div class="tpl-men__footer-tel">📞 <span contenteditable="true">06-4977-4297</span></div>
+          </div>
+        </div>
+
+        <!-- REFERRAL -->
+        <div class="tpl tpl-referral" data-template-id="referral" style="display:none">
+          <div class="bg-layer" data-bg-layer="referral"></div>
+          <div class="tpl-referral__border"></div>
+          <div class="tpl-referral__corner-tl"></div>
+          <div class="tpl-referral__corner-br"></div>
+          <div class="tpl-referral__header">
+            <div class="tpl-referral__logo">
+              <div class="tpl-referral__leaf logo-slot" data-logo-slot="referral"><svg viewBox="0 0 100 100"><defs><linearGradient id="leafG4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2a9999"/><stop offset="100%" stop-color="#1b3a3a"/></linearGradient></defs><path d="M50 90 Q20 60 25 25 Q45 35 50 90 Z" fill="url(#leafG4)"/><path d="M50 90 Q80 60 75 25 Q55 35 50 90 Z" fill="url(#leafG4)" opacity="0.85"/></svg></div>
+              <div class="tpl-referral__logo-text" contenteditable="true">KANOA</div>
+            </div>
+            <div class="tpl-referral__title-area">
+              <div class="tpl-referral__title" contenteditable="true">ご紹介カード</div>
+              <div class="tpl-referral__title-line"></div>
+              <div class="tpl-referral__title-sub" contenteditable="true">このカードをご持参で</div>
+            </div>
+          </div>
+          <div class="tpl-referral__benefits">
+            <div class="tpl-referral__benefit">
+              <div class="tpl-referral__benefit-label" contenteditable="true">ご紹介された方</div>
+              <div class="tpl-referral__benefit-body"><span class="tpl-referral__benefit-pre" contenteditable="true">初回限定</span><span class="tpl-referral__benefit-amount" contenteditable="true">500</span><span class="tpl-referral__benefit-unit" contenteditable="true">円OFF</span></div>
+            </div>
+            <div class="tpl-referral__benefit">
+              <div class="tpl-referral__benefit-label tpl-referral__benefit-label--light" contenteditable="true">ご紹介した方</div>
+              <div class="tpl-referral__benefit-body"><span class="tpl-referral__benefit-pre" contenteditable="true">何回でも</span><span class="tpl-referral__benefit-amount" contenteditable="true">500</span><span class="tpl-referral__benefit-unit" contenteditable="true">円OFF</span></div>
+            </div>
+          </div>
+          <div class="tpl-referral__names">
+            <div class="tpl-referral__name-field"><div class="tpl-referral__name-label" contenteditable="true">ご紹介者様　お名前</div><div class="tpl-referral__name-line"></div></div>
+            <div class="tpl-referral__name-field"><div class="tpl-referral__name-label" contenteditable="true">ご来店者様　お名前</div><div class="tpl-referral__name-line"></div></div>
+          </div>
+          <div class="tpl-referral__notes">
+            <span contenteditable="true">※初めてご来店の方のみ対象</span>
+            <span contenteditable="true">※ご紹介者様は何回でもご利用いただけます</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- DOCK -->
+  <aside class="dock" id="dock">
+    <div class="dock__handle"></div>
+    <div class="dock__header-mobile">
+      <div>
+        <div class="dock__title" id="dock-title-mobile" style="font-size:13px;margin:0">プロパティ</div>
+      </div>
+      <button class="dock__close-mobile" id="dock-close" aria-label="閉じる">×</button>
+    </div>
+    <div class="dock__body-wrap">
+      <div class="dock__title" id="dock-title">プロパティ</div>
+      <div class="dock__subtitle" id="dock-subtitle">要素を選んでください</div>
+      <div id="dock-body">
+        <div class="dock__empty">
+          <div class="dock__empty-icon">👆</div>
+          文字や画像を<br>クリックすると<br>ここで詳細設定できるで！
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- バックドロップ (モバイル用) -->
+<div class="dock-backdrop" id="dock-backdrop"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3>編集内容をリセットしますか？</h3>
+    <p>このテンプレートの編集内容が初期状態に戻ります。元に戻せません。</p>
+    <div class="modal__actions">
+      <button class="btn btn--ghost" id="modal-cancel">キャンセル</button>
+      <button class="btn btn--danger" id="modal-confirm">リセット</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-bg" id="save-modal-bg">
+  <div class="modal modal--save">
+    <h3 id="save-modal-title">名前を付けて保存</h3>
+    <p id="save-modal-desc">このデザインに名前を付けて保存できる。次から呼び出して編集できるで。</p>
+    <input type="text" class="modal-input" id="save-name-input" placeholder="例：春のキャンペーン用ポスター" maxlength="50">
+    <div class="modal__actions">
+      <button class="btn btn--ghost" id="save-cancel">キャンセル</button>
+      <button class="btn btn--primary" id="save-confirm">💾 保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVED LIST MODAL -->
+<div class="modal-bg" id="list-modal-bg">
+  <div class="modal modal--list">
+    <h3>📂 保存済みデザイン</h3>
+    <p>保存したデザインの一覧。タップで開いて編集できる。</p>
+    <div class="saved-body" id="saved-list-body"></div>
+    <div class="modal__actions" style="margin-top:14px">
+      <button class="btn btn--ghost" id="list-close">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="add-image-input" accept="image/*" style="display:none">
+
+<script>
+/* ===================================================================
+   KANOA Studio - Pro Design Tool
+   =================================================================== */
+
+// ★ デバッグ：エラーを画面に大きく表示
+(function(){
+  function showErr(title, detail, src){
+    try{
+      const id='kanoa-err-'+Date.now();
+      const div = document.createElement('div');
+      div.id = id;
+      div.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;background:#9b2c2c;color:#fff;padding:12px 14px;z-index:99999;font-size:12px;font-family:ui-monospace,monospace;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.4);line-height:1.5;word-break:break-all;max-height:50vh;overflow:auto;';
+      div.innerHTML = '<div style="font-size:14px;font-weight:bold;margin-bottom:6px">⚠️ '+title+'</div>'+
+        '<div>'+detail+'</div>'+
+        (src ? '<div style="margin-top:6px;opacity:.8;font-size:11px">'+src+'</div>' : '')+
+        '<button onclick="document.getElementById(\''+id+'\').remove()" style="float:right;margin-top:8px;background:#fff;color:#9b2c2c;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:bold;cursor:pointer">閉じる</button>';
+      document.body.appendChild(div);
+    }catch(_){}
+  }
+  window.addEventListener('error', function(e){
+    // 拡張機能関係は無視
+    if((e.message||'').includes('asynchronous response')) return;
+    if((e.message||'').includes('extension')) return;
+    showErr('JSエラー', (e.message||'?'), (e.filename ? e.filename.split('/').pop() : '?')+':'+(e.lineno||'?'));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    const r = e.reason;
+    if(r && (String(r).includes('asynchronous response') || String(r).includes('extension'))) return;
+    showErr('Promiseエラー', r ? (r.message||String(r)) : '?', '');
+  });
+})();
+
+// ★ 主要関数の呼び出しを安全化（try-catchで囲む）
+function safeRun(label, fn){
+  try{ return fn(); }
+  catch(e){
+    try{
+      const div = document.createElement('div');
+      div.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;background:#c2410c;color:#fff;padding:12px;z-index:99999;font-size:12px;font-family:ui-monospace,monospace;border-radius:8px;line-height:1.4;word-break:break-all;';
+      div.innerHTML = '⚠️ '+label+' で失敗<br>'+e.message+'<br><small style="opacity:.7">'+(e.stack||'').split('\n')[1]+'</small>'+
+        '<button onclick="this.parentNode.remove()" style="float:right;background:#fff;color:#c2410c;border:none;border-radius:4px;padding:2px 8px;margin-left:8px;font-size:11px;font-weight:bold;cursor:pointer">×</button>';
+      document.body.appendChild(div);
+    }catch(_){}
+    console.error('safeRun:', label, e);
+  }
+}
+
+const STORAGE_KEY = 'kanoa-studio-v3';
+const TEMPLATES = ['menu','menu2','women','men','referral'];
+const TEMPLATE_NAMES = {menu:'院内メニュー①',menu2:'院内メニュー②',women:'女性向けポスター',men:'男性向けポスター',referral:'紹介カード'};
+
+const BG_PRESETS = {
+  none:{label:'なし',css:'none'},
+  leaves:{label:'葉模様',css:'radial-gradient(ellipse at top left,rgba(184,221,220,.5) 0%,transparent 50%),radial-gradient(ellipse at bottom right,rgba(184,221,220,.4) 0%,transparent 50%),linear-gradient(135deg,#f4faf9 0%,#e8f3f2 100%)'},
+  cream:{label:'クリーム',css:'linear-gradient(135deg,#faf8f3 0%,#f0e8d8 100%)'},
+  pink:{label:'ピンク',css:'linear-gradient(135deg,#fdf2f8 0%,#fce7f3 100%)'},
+  navy:{label:'ネイビー',css:'linear-gradient(135deg,#e0e7ff 0%,#c7d2fe 100%)'},
+  mint:{label:'ミント',css:'linear-gradient(135deg,#ecfdf5 0%,#a7f3d0 100%)'},
+  sand:{label:'サンド',css:'linear-gradient(135deg,#fef3c7 0%,#fde68a 100%)'},
+  dots:{label:'ドット',css:'radial-gradient(circle,#d4b687 1.5px,transparent 1.5px) 0 0/20px 20px, linear-gradient(#fff,#fff)'},
+  lines:{label:'ライン',css:'repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(42,153,153,.05) 20px,rgba(42,153,153,.05) 21px), #fff'},
+};
+
+const FONT_FAMILIES = [
+  {label:'明朝（標準）',value:"'Noto Serif JP',serif"},
+  {label:'ゴシック',value:"'Noto Sans JP',sans-serif"},
+  {label:'丸ゴシック',value:"'Zen Kaku Gothic New',sans-serif"},
+  {label:'さわらび明朝',value:"'Sawarabi Mincho',serif"},
+  {label:'手書き風',value:"'Klee One',cursive"},
+  {label:'ドット',value:"'DotGothic16',sans-serif"},
+  {label:'英文セリフ',value:"'Cormorant Garamond',serif"},
+  {label:'英文手書き',value:"'Caveat',cursive"},
+];
+
+const FONT_WEIGHTS = [
+  {label:'細',value:'300'},{label:'標準',value:'400'},
+  {label:'中',value:'500'},{label:'太',value:'700'},{label:'極太',value:'900'},
+];
+
+let currentTemplate = 'menu';
+let selectedElement = null;
+let freeImageIdCounter = 0;
+let freeTextIdCounter = 0;
+let bgMenuVisible = false;
+
+/* ============ STORAGE ============ */
+function loadState(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch(e){return{}}}
+function saveState(s){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}catch(e){console.warn(e)}}
+function getTplState(t){
+  const s = loadState();
+  if(!s[t]) s[t] = {texts:{},images:{},logos:{},background:null,elementStyles:{},freeImages:[],freeTexts:[],draggedPositions:{}};
+  return s;
+}
+function setTplData(t, key, val){const s = getTplState(t); s[t][key] = val; saveState(s)}
+function setTplSubData(t, key, subKey, val){const s = getTplState(t); if(!s[t][key]) s[t][key]={}; s[t][key][subKey] = val; saveState(s)}
+
+/* ============ ELEMENT ID ============ */
+function getElementId(el){
+  if(el.dataset.elId) return el.dataset.elId;
+  const tpl = el.closest('.tpl');
+  if(!tpl) return null;
+  const tplId = tpl.dataset.templateId;
+  // Generate stable id from selector-like path
+  const all = Array.from(tpl.querySelectorAll('*'));
+  const idx = all.indexOf(el);
+  const id = `${tplId}-el-${idx}`;
+  el.dataset.elId = id;
+  return id;
+}
+
+/* ============ SELECTABLE ============ */
+function makeSelectable(){
+  document.querySelectorAll('.tpl [contenteditable="true"], .tpl .photo-slot, .tpl .logo-slot, .tpl .free-image, .tpl .free-text').forEach(el=>{
+    if(el.dataset.selectableBound) return;
+    el.dataset.selectableBound = '1';
+    if(!el.classList.contains('free-image') && !el.classList.contains('free-text')) el.classList.add('selectable');
+    
+    el.addEventListener('mousedown',(e)=>{
+      if(e.detail===2) return; // double click=edit
+      if(el.contains(document.activeElement) && document.activeElement !== el) return;
+    });
+  });
+}
+
+// ★ ドラッグ範囲選択（空白部分をドラッグして矩形で囲んだ要素を複数選択）
+function enableRectSelection(){
+  document.querySelectorAll('.tpl').forEach(tpl=>{
+    if(tpl.dataset.rectSelBound) return;
+    tpl.dataset.rectSelBound = '1';
+    
+    let startX, startY, rectEl, isActive = false;
+    
+    tpl.addEventListener('pointerdown',(e)=>{
+      // 空白部分のみ反応（要素の上は対象外）
+      const t = e.target;
+      const isBlank = t === tpl || t.classList?.contains('bg-layer') || 
+                      t.classList?.contains('tpl-menu__divider') ||
+                      t.tagName === 'DIV' && !t.closest('.free-image,.free-text,.free-shape,.photo-slot,.logo-slot,[contenteditable="true"],.tpl-menu__item,.tpl-menu__header,.tpl-menu__section,.tpl-menu__column');
+      
+      // 空白を厳密に判定するため、もっと簡単に：直接tpl/bg-layerだけ
+      if(t !== tpl && !t.classList?.contains('bg-layer')) return;
+      
+      const tplRect = tpl.getBoundingClientRect();
+      const scale = tpl.offsetWidth / tplRect.width;
+      startX = (e.clientX - tplRect.left) * scale;
+      startY = (e.clientY - tplRect.top) * scale;
+      isActive = true;
+      
+      rectEl = document.createElement('div');
+      rectEl.className = 'rect-selection';
+      rectEl.style.cssText = `position:absolute;left:${startX}px;top:${startY}px;width:0;height:0;border:2px dashed #1b7373;background:rgba(184,221,220,.18);z-index:99998;pointer-events:none;`;
+      tpl.appendChild(rectEl);
+      
+      e.preventDefault();
+    });
+    
+    document.addEventListener('pointermove',(e)=>{
+      if(!isActive || !rectEl) return;
+      const tplRect = tpl.getBoundingClientRect();
+      const scale = tpl.offsetWidth / tplRect.width;
+      const x = (e.clientX - tplRect.left) * scale;
+      const y = (e.clientY - tplRect.top) * scale;
+      const minX = Math.min(startX, x), maxX = Math.max(startX, x);
+      const minY = Math.min(startY, y), maxY = Math.max(startY, y);
+      rectEl.style.left = minX + 'px';
+      rectEl.style.top = minY + 'px';
+      rectEl.style.width = (maxX - minX) + 'px';
+      rectEl.style.height = (maxY - minY) + 'px';
+    });
+    
+    document.addEventListener('pointerup',(e)=>{
+      if(!isActive || !rectEl) return;
+      isActive = false;
+      
+      const tplRect = tpl.getBoundingClientRect();
+      const scale = tpl.offsetWidth / tplRect.width;
+      const x = (e.clientX - tplRect.left) * scale;
+      const y = (e.clientY - tplRect.top) * scale;
+      const w = Math.abs(x - startX);
+      const h = Math.abs(y - startY);
+      
+      // 矩形がそれなりに大きい場合のみ範囲選択（小さすぎたら単なるクリック）
+      if(w > 30 && h > 30){
+        const minX = Math.min(startX, x), maxX = Math.max(startX, x);
+        const minY = Math.min(startY, y), maxY = Math.max(startY, y);
+        
+        // 既存選択クリア
+        multiSelected.forEach(el=>el.classList.remove('is-selected'));
+        multiSelected = [];
+        if(selectedElement){ selectedElement.classList.remove('is-selected'); selectedElement = null; }
+        
+        // 重なる要素を探す
+        const candidates = tpl.querySelectorAll('.free-image, .free-text, .free-shape, .photo-slot, .logo-slot, [contenteditable="true"]');
+        candidates.forEach(el=>{
+          if(el.offsetParent === null) return;
+          const er = el.getBoundingClientRect();
+          const erLeft = (er.left - tplRect.left) * scale;
+          const erTop = (er.top - tplRect.top) * scale;
+          const erRight = (er.right - tplRect.left) * scale;
+          const erBottom = (er.bottom - tplRect.top) * scale;
+          // 矩形と重なるかチェック
+          if(erRight >= minX && erLeft <= maxX && erBottom >= minY && erTop <= maxY){
+            multiSelected.push(el);
+            el.classList.add('is-selected');
+          }
+        });
+        
+        if(multiSelected.length >= 2){
+          safeRun('複数選択パネル', ()=>buildMultiPanel());
+          if(window.innerWidth <= 1024){
+            document.getElementById('dock').classList.add('is-shown');
+            document.getElementById('dock-backdrop').classList.add('is-shown');
+          }
+          showToast(`${multiSelected.length}個 選択したで`);
+        }else if(multiSelected.length === 1){
+          const el = multiSelected[0];
+          multiSelected = [];
+          selectElement(el);
+        }
+      }
+      
+      rectEl.remove();
+      rectEl = null;
+    });
+  });
+}
+
+// ★ 複数選択の状態
+let multiSelected = [];
+
+function selectElement(el, modifier){
+  // Shift+クリック: マルチセレクト追加・解除
+  if(modifier === 'add'){
+    // 既存の単独選択があれば最初の要素として組み込む
+    if(multiSelected.length === 0 && selectedElement && selectedElement !== el){
+      multiSelected = [selectedElement];
+    }
+    if(multiSelected.includes(el)){
+      // 解除
+      el.classList.remove('is-selected');
+      multiSelected = multiSelected.filter(x=>x!==el);
+    }else{
+      multiSelected.push(el);
+      el.classList.add('is-selected');
+    }
+    if(multiSelected.length >= 2){
+      selectedElement = null; // 単独選択はクリア
+      safeRun('複数選択パネル', ()=>buildMultiPanel());
+      if(window.innerWidth <= 1024){
+        document.getElementById('dock').classList.add('is-shown');
+        document.getElementById('dock-backdrop').classList.add('is-shown');
+      }
+      return;
+    }else if(multiSelected.length === 1){
+      // 1つ残り→通常選択にフォールバック
+      el = multiSelected[0];
+      multiSelected = [];
+    }else{
+      deselectAll();
+      return;
+    }
+  }else{
+    // 通常クリック：マルチセレクトをクリア
+    if(multiSelected.length > 0){
+      multiSelected.forEach(e=>e.classList.remove('is-selected'));
+      multiSelected = [];
+    }
+  }
+  
+  // 通常の単独選択処理（既存と同じ）
+  if(selectedElement && selectedElement !== el){
+    selectedElement.classList.remove('is-selected');
+  }
+  selectedElement = el;
+  el.classList.add('is-selected');
+  safeRun('プロパティパネル構築', ()=>buildPropertiesPanel(el));
+  if(window.innerWidth <= 1024){
+    document.getElementById('dock').classList.add('is-shown');
+    document.getElementById('dock-backdrop').classList.add('is-shown');
+  }
+}
+
+function buildMultiPanel(){
+  document.body.classList.add('is-multi-selected');
+  document.getElementById('dock-title').textContent = `🔘 複数選択中（${multiSelected.length}個）`;
+  document.getElementById('dock-subtitle').textContent = '一斉に動かせるで';
+  const body = document.getElementById('dock-body');
+  body.innerHTML = `
+    <div class="prop-group">
+      <label class="prop-label">位置を一斉に動かす</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-width:200px;margin:8px auto">
+        <div></div>
+        <button class="prop-btn" data-gmove="up">⬆</button>
+        <div></div>
+        <button class="prop-btn" data-gmove="left">⬅</button>
+        <button class="prop-btn" data-gmove="center">⊙</button>
+        <button class="prop-btn" data-gmove="right">➡</button>
+        <div></div>
+        <button class="prop-btn" data-gmove="down">⬇</button>
+        <div></div>
+      </div>
+      <div style="display:flex;gap:5px;justify-content:center;margin-top:10px">
+        <button class="prop-btn" data-gstep="1">1px</button>
+        <button class="prop-btn is-active" data-gstep="10">10px</button>
+        <button class="prop-btn" data-gstep="50">50px</button>
+      </div>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">サイズを一斉に</label>
+      <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px">
+        <button class="prop-btn" data-gsize="smaller">− 縮小</button>
+        <button class="prop-btn" data-gsize="larger">+ 拡大</button>
+      </div>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">色を一斉に</label>
+      <div class="prop-btn-grid" style="grid-template-columns:repeat(7,1fr);gap:4px">
+        <button class="prop-color-btn" data-gbg="transparent" style="background:transparent;border:2px dashed #999" title="なし"></button>
+        <button class="prop-color-btn" data-gbg="#b8dddc" style="background:#b8dddc"></button>
+        <button class="prop-color-btn" data-gbg="#2a9999" style="background:#2a9999"></button>
+        <button class="prop-color-btn" data-gbg="#1b3a3a" style="background:#1b3a3a"></button>
+        <button class="prop-color-btn" data-gbg="#d4b687" style="background:#d4b687"></button>
+        <button class="prop-color-btn" data-gbg="#9b2c2c" style="background:#9b2c2c"></button>
+        <button class="prop-color-btn" data-gbg="#faf8f3" style="background:#faf8f3"></button>
+      </div>
+    </div>
+    <div class="prop-group">
+      <button class="prop-btn-full" id="multi-deselect">選択を解除</button>
+    </div>
+  `;
+  
+  let gstep = 10;
+  body.querySelectorAll('[data-gstep]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      gstep = parseInt(b.dataset.gstep);
+      body.querySelectorAll('[data-gstep]').forEach(x=>x.classList.remove('is-active'));
+      b.classList.add('is-active');
+    });
+  });
+  body.querySelectorAll('[data-gmove]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      multiSelected.forEach(el=>safeRun('一括移動', ()=>moveElement(el, b.dataset.gmove, gstep)));
+    });
+  });
+  body.querySelectorAll('[data-gsize]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      multiSelected.forEach(el=>safeRun('一括サイズ', ()=>resizeElement(el, b.dataset.gsize)));
+    });
+  });
+  body.querySelectorAll('[data-gbg]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const c = b.dataset.gbg;
+      multiSelected.forEach(el=>safeRun('一括色', ()=>{
+        applyStyle(el, 'background', c === 'transparent' ? 'none' : c);
+      }));
+    });
+  });
+  document.getElementById('multi-deselect')?.addEventListener('click', deselectAll);
+}
+
+function deselectAll(){
+  document.body.classList.remove('is-multi-selected');
+  // 複数選択もクリア
+  multiSelected.forEach(e=>e.classList.remove('is-selected'));
+  multiSelected = [];
+  if(selectedElement){
+    selectedElement.classList.remove('is-selected');
+    selectedElement = null;
+  }
+  showEmptyDock();
+  document.getElementById('dock').classList.remove('is-shown');
+  document.getElementById('dock-backdrop').classList.remove('is-shown');
+}
+
+function closeDockOnly(){
+  // 選択は維持したまま、ドックだけ閉じる
+  document.getElementById('dock').classList.remove('is-shown');
+  document.getElementById('dock-backdrop').classList.remove('is-shown');
+}
+
+/* ============ PROPERTIES PANEL ============ */
+function showEmptyDock(){
+  document.getElementById('dock-title').textContent = 'プロパティ';
+  document.getElementById('dock-subtitle').textContent = '要素を選んでください';
+  document.getElementById('dock-body').innerHTML = `
+    <div class="dock__empty">
+      <div class="dock__empty-icon">👆</div>
+      文字や画像を<br>クリックすると<br>ここで詳細設定できるで！
+    </div>`;
+}
+
+function buildPropertiesPanel(el){
+  const isText = el.hasAttribute('contenteditable');
+  const isFreeImage = el.classList.contains('free-image');
+  const isFreeText = el.classList.contains('free-text');
+  const isPhotoSlot = el.classList.contains('photo-slot');
+  const isLogoSlot = el.classList.contains('logo-slot');
+  
+  let title = 'プロパティ', subtitle = '';
+  if(isText && !isFreeText) {title = 'テキスト'; subtitle = 'ダブルクリックで文字を編集'}
+  else if(isFreeText) {title = 'フリーテキスト'; subtitle = 'ダブルクリックで文字を編集'}
+  else if(isFreeImage) {title = '画像'; subtitle = 'ドラッグで移動・角●でリサイズ'}
+  else if(isPhotoSlot) {title = '写真枠'; subtitle = 'クリックで画像差し替え'}
+  else if(isLogoSlot) {title = 'ロゴ'; subtitle = 'クリックでロゴ差し替え'}
+  
+  document.getElementById('dock-title').textContent = title;
+  document.getElementById('dock-subtitle').textContent = subtitle;
+  const titleM = document.getElementById('dock-title-mobile');
+  if(titleM) titleM.textContent = title;
+  
+  const body = document.getElementById('dock-body');
+  body.innerHTML = '';
+  
+  // ===== TEXT properties =====
+  if(isText || isFreeText){
+    const cs = window.getComputedStyle(el);
+    const curSize = parseFloat(cs.fontSize);
+    const curColor = rgbToHex(cs.color);
+    const curWeight = cs.fontWeight;
+    const curAlign = cs.textAlign;
+    
+    // Font size
+    body.appendChild(makeGroup('文字サイズ', Math.round(curSize)+'px', `
+      <div class="prop-row">
+        <button class="prop-btn" data-action="font-dec">A−</button>
+        <input type="number" class="prop-input" id="prop-fontsize" value="${Math.round(curSize)}" min="6" max="200">
+        <button class="prop-btn" data-action="font-inc">A+</button>
+      </div>`));
+    
+    // Font family
+    body.appendChild(makeGroup('フォント', '', `
+      <select class="prop-select" id="prop-fontfamily">
+        ${FONT_FAMILIES.map(f=>`<option value="${f.value}">${f.label}</option>`).join('')}
+      </select>`));
+    
+    // Font weight
+    body.appendChild(makeGroup('太さ', '', `
+      <select class="prop-select" id="prop-fontweight">
+        ${FONT_WEIGHTS.map(w=>`<option value="${w.value}" ${curWeight===w.value?'selected':''}>${w.label}</option>`).join('')}
+      </select>`));
+    
+    // Color
+    body.appendChild(makeGroup('文字色', curColor, `
+      <div class="prop-row">
+        <input type="color" class="prop-color" id="prop-color" value="${curColor}">
+        <input type="text" class="prop-input" id="prop-color-text" value="${curColor}">
+      </div>`));
+    
+    // Alignment
+    const alignBtn = (val, label)=>`<button class="prop-btn ${curAlign===val?'is-active':''}" data-action="align-${val}">${label}</button>`;
+    body.appendChild(makeGroup('揃え', '', `
+      <div class="prop-btn-grid" style="grid-template-columns:repeat(3,1fr)">
+        ${alignBtn('left','⬅')}${alignBtn('center','⬌')}${alignBtn('right','➡')}
+      </div>`));
+  }
+  
+  // Universal: Position pad (NEW! - スマホでもドラッグ不要)
+  body.appendChild(makeGroup('位置を動かす', '', `
+    <div class="move-pad">
+      <div class="move-pad-spacer"></div>
+      <button class="move-btn" data-move="up">⬆</button>
+      <div class="move-pad-spacer"></div>
+      <button class="move-btn" data-move="left">⬅</button>
+      <button class="move-btn move-btn--center" data-move="center" title="中央に">⊙</button>
+      <button class="move-btn" data-move="right">➡</button>
+      <div class="move-pad-spacer"></div>
+      <button class="move-btn" data-move="down">⬇</button>
+      <div class="move-pad-spacer"></div>
+    </div>
+    <div class="move-step">
+      <button class="move-step-btn" data-step="1">1px</button>
+      <button class="move-step-btn is-active" data-step="10">10px</button>
+      <button class="move-step-btn" data-step="50">50px</button>
+      <button class="move-step-btn" data-step="100">100px</button>
+    </div>`));
+  
+  // Universal: Size adjust (NEW!)
+  if(isFreeImage || isFreeText){
+    body.appendChild(makeGroup('サイズ', '', `
+      <div class="size-row">
+        <button class="size-btn" data-size="smaller">− 縮小</button>
+        <button class="size-btn" data-size="larger">+ 拡大</button>
+      </div>
+      <div class="size-row" style="margin-top:5px">
+        <button class="size-btn" data-size="narrower">幅 −</button>
+        <button class="size-btn" data-size="wider">幅 +</button>
+      </div>
+      <div class="size-row" style="margin-top:5px">
+        <button class="size-btn" data-size="shorter">高さ −</button>
+        <button class="size-btn" data-size="taller">高さ +</button>
+      </div>`));
+  }
+  
+  // Universal properties =====
+  // Background color (for headings, sections etc.)
+  const curBg = el.style.backgroundColor || '';
+  body.appendChild(makeGroup('背景色', '', `
+    <div class="prop-btn-grid" style="grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+      <button class="prop-color-btn" data-bg="transparent" style="background:transparent;border:2px dashed #999" title="なし"></button>
+      <button class="prop-color-btn" data-bg="#b8dddc" style="background:#b8dddc" title="ミント"></button>
+      <button class="prop-color-btn" data-bg="#a0c8c7" style="background:#a0c8c7" title="ティール淡"></button>
+      <button class="prop-color-btn" data-bg="#2a9999" style="background:#2a9999" title="ティール"></button>
+      <button class="prop-color-btn" data-bg="#1b3a3a" style="background:#1b3a3a" title="ダーク"></button>
+      <button class="prop-color-btn" data-bg="#d4b687" style="background:#d4b687" title="ゴールド"></button>
+      <button class="prop-color-btn" data-bg="#faf8f3" style="background:#faf8f3" title="クリーム"></button>
+    </div>
+    <input type="color" class="prop-color-picker" id="prop-bg-custom" value="${curBg.startsWith('rgb')?'#000000':(curBg||'#b8dddc')}" style="width:100%;height:32px;border-radius:6px;cursor:pointer">`));
+  
+  // Text color
+  const curColor = window.getComputedStyle(el).color;
+  body.appendChild(makeGroup('文字色', '', `
+    <div class="prop-btn-grid" style="grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+      <button class="prop-color-btn" data-fg="#1b7373" style="background:#1b7373" title="ティール"></button>
+      <button class="prop-color-btn" data-fg="#1b3a3a" style="background:#1b3a3a" title="ダーク"></button>
+      <button class="prop-color-btn" data-fg="#2c3e3e" style="background:#2c3e3e" title="グレー"></button>
+      <button class="prop-color-btn" data-fg="#ffffff" style="background:#fff;border:1px solid #ccc" title="白"></button>
+      <button class="prop-color-btn" data-fg="#d4b687" style="background:#d4b687" title="ゴールド"></button>
+      <button class="prop-color-btn" data-fg="#9b2c2c" style="background:#9b2c2c" title="赤"></button>
+      <button class="prop-color-btn" data-fg="#2c5282" style="background:#2c5282" title="紺"></button>
+    </div>
+    <input type="color" class="prop-color-picker" id="prop-fg-custom" value="#1b7373" style="width:100%;height:32px;border-radius:6px;cursor:pointer">`));
+  
+  // Opacity
+  const curOpacity = Math.round(parseFloat(window.getComputedStyle(el).opacity) * 100);
+  body.appendChild(makeGroup('不透明度', curOpacity+'%', `
+    <input type="range" class="prop-range" id="prop-opacity" min="0" max="100" value="${curOpacity}">`));
+  
+  // Rotation
+  const transform = el.style.transform || '';
+  let curRot = 0;
+  const rotMatch = transform.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
+  if(rotMatch) curRot = parseFloat(rotMatch[1]);
+  body.appendChild(makeGroup('回転', curRot+'°', `
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="range" class="prop-range" id="prop-rotation" min="-180" max="180" value="${curRot}" style="flex:1">
+      <button class="prop-btn" data-action="rotation-reset" title="0°に戻す" style="padding:4px 9px">↺</button>
+    </div>`));
+  
+  // ★ Size adjust (all elements!)
+  body.appendChild(makeGroup('サイズ調整', '', `
+    <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px">
+      <button class="prop-btn" data-size="smaller">− 縮小</button>
+      <button class="prop-btn" data-size="larger">+ 拡大</button>
+    </div>
+    <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px;margin-top:5px">
+      <button class="prop-btn" data-size="narrower">幅 −</button>
+      <button class="prop-btn" data-size="wider">幅 +</button>
+    </div>
+    <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr;gap:5px;margin-top:5px">
+      <button class="prop-btn" data-size="shorter">高さ −</button>
+      <button class="prop-btn" data-size="taller">高さ +</button>
+    </div>`));
+  
+  // Layer
+  body.appendChild(makeGroup('レイヤー', '', `
+    <div class="prop-btn-grid" style="grid-template-columns:1fr 1fr">
+      <button class="prop-btn" data-action="layer-front">⬆ 前面へ</button>
+      <button class="prop-btn" data-action="layer-back">⬇ 背面へ</button>
+    </div>`));
+  
+  // Position controls
+  const hasDraggedPos = el.classList.contains('is-positioned');
+  let posBtns = '';
+  if(!isFreeImage && !isFreeText){
+    posBtns = `<button class="prop-btn-full" data-action="reset-position" ${!hasDraggedPos?'disabled style="opacity:0.5"':''}>📍 位置をリセット</button>`;
+  }
+  
+  // Action buttons
+  let actions = posBtns;
+  actions += `<button class="prop-btn-full" data-action="duplicate" style="margin-top:5px">📋 複製</button>`;
+  // ロゴ枠なら差し替えボタン
+  if(el.classList.contains('logo-slot')){
+    actions += `<button class="prop-btn-full" data-action="replace-logo" style="margin-top:5px">📷 ロゴ画像を差し替え</button>`;
+  }
+  // 写真枠なら差し替え
+  if(el.classList.contains('photo-slot')){
+    actions += `<button class="prop-btn-full" data-action="replace-photo" style="margin-top:5px">📷 写真を差し替え</button>`;
+  }
+  actions += `<button class="prop-btn-full prop-btn-full--danger" data-action="delete" style="margin-top:5px">🗑 ${(isFreeImage||isFreeText||el.classList.contains('free-shape'))?'削除':'非表示'}</button>`;
+  body.appendChild(makeGroup('アクション', '', actions));
+  
+  // Set initial values
+  setTimeout(()=>{
+    const ff = document.getElementById('prop-fontfamily');
+    if(ff){
+      const cur = window.getComputedStyle(el).fontFamily;
+      const match = FONT_FAMILIES.find(f=>cur.includes(f.value.split(',')[0].replace(/'/g,'')));
+      if(match) ff.value = match.value;
+    }
+  }, 0);
+  
+  // Attach handlers
+  safeRun('ハンドラ登録', ()=>attachPropertyHandlers(el));
+}
+
+function makeGroup(label, value, content){
+  const div = document.createElement('div');
+  div.className = 'prop-group';
+  div.innerHTML = `<div class="prop-label">${label}${value?'<span class="prop-value">'+value+'</span>':''}</div>${content}`;
+  return div;
+}
+
+function attachPropertyHandlers(el){
+  // ★ Background color buttons
+  document.querySelectorAll('[data-bg]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const c = btn.dataset.bg;
+      applyStyle(el, 'background', c === 'transparent' ? 'none' : c);
+      applyStyle(el, 'backgroundImage', c === 'transparent' ? 'none' : '');
+    });
+  });
+  const bgPicker = document.getElementById('prop-bg-custom');
+  if(bgPicker) bgPicker.addEventListener('input',()=>{
+    applyStyle(el, 'background', bgPicker.value);
+    applyStyle(el, 'backgroundImage', '');
+  });
+  
+  // ★ Text color buttons
+  document.querySelectorAll('[data-fg]').forEach(btn=>{
+    btn.addEventListener('click',()=>applyStyle(el, 'color', btn.dataset.fg));
+  });
+  const fgPicker = document.getElementById('prop-fg-custom');
+  if(fgPicker) fgPicker.addEventListener('input',()=>applyStyle(el, 'color', fgPicker.value));
+  
+  // Font size
+  const fsInput = document.getElementById('prop-fontsize');
+  if(fsInput){
+    fsInput.addEventListener('input',()=>{
+      const sz = parseFloat(fsInput.value);
+      if(!isNaN(sz)) applyStyle(el, 'fontSize', sz+'px');
+    });
+    document.querySelector('[data-action="font-inc"]')?.addEventListener('click',()=>{
+      const cur = parseFloat(window.getComputedStyle(el).fontSize);
+      applyStyle(el, 'fontSize', (cur+1)+'px');
+      fsInput.value = Math.round(cur+1);
+      updateLabel(fsInput, Math.round(cur+1)+'px');
+    });
+    document.querySelector('[data-action="font-dec"]')?.addEventListener('click',()=>{
+      const cur = parseFloat(window.getComputedStyle(el).fontSize);
+      const nv = Math.max(6, cur-1);
+      applyStyle(el, 'fontSize', nv+'px');
+      fsInput.value = Math.round(nv);
+      updateLabel(fsInput, Math.round(nv)+'px');
+    });
+  }
+  
+  // Font family
+  const ff = document.getElementById('prop-fontfamily');
+  if(ff) ff.addEventListener('change',()=>applyStyle(el,'fontFamily',ff.value));
+  
+  // Font weight
+  const fw = document.getElementById('prop-fontweight');
+  if(fw) fw.addEventListener('change',()=>applyStyle(el,'fontWeight',fw.value));
+  
+  // Color
+  const colorInput = document.getElementById('prop-color');
+  const colorText = document.getElementById('prop-color-text');
+  if(colorInput){
+    colorInput.addEventListener('input',()=>{
+      applyStyle(el,'color',colorInput.value);
+      if(colorText) colorText.value = colorInput.value;
+      updateLabel(colorInput, colorInput.value);
+    });
+    if(colorText) colorText.addEventListener('input',()=>{
+      if(/^#[0-9a-f]{6}$/i.test(colorText.value)){
+        applyStyle(el,'color',colorText.value);
+        colorInput.value = colorText.value;
+      }
+    });
+  }
+  
+  // Align
+  ['left','center','right'].forEach(a=>{
+    document.querySelector(`[data-action="align-${a}"]`)?.addEventListener('click',()=>{
+      applyStyle(el,'textAlign',a);
+      document.querySelectorAll('[data-action^="align-"]').forEach(b=>b.classList.remove('is-active'));
+      document.querySelector(`[data-action="align-${a}"]`).classList.add('is-active');
+    });
+  });
+  
+  // Opacity
+  const op = document.getElementById('prop-opacity');
+  if(op) op.addEventListener('input',()=>{
+    const v = parseFloat(op.value)/100;
+    applyStyle(el,'opacity',v);
+    updateLabel(op, op.value+'%');
+  });
+  
+  // Rotation
+  const rot = document.getElementById('prop-rotation');
+  if(rot) rot.addEventListener('input',()=>{
+    setRotation(el, parseFloat(rot.value));
+    updateLabel(rot, rot.value+'°');
+  });
+  
+  // Layer
+  document.querySelector('[data-action="layer-front"]')?.addEventListener('click',()=>{
+    moveLayer(el, 'front');
+    showToast('前面に移動したで⬆');
+  });
+  document.querySelector('[data-action="layer-back"]')?.addEventListener('click',()=>{
+    moveLayer(el, 'back');
+    showToast('背面に移動したで⬇');
+  });
+  
+  // Reset position
+  document.querySelector('[data-action="reset-position"]')?.addEventListener('click',()=>{
+    resetPosition(el);
+    showToast('位置を戻したで');
+    setTimeout(()=>buildPropertiesPanel(el),50);
+  });
+  
+  // Duplicate
+  document.querySelector('[data-action="duplicate"]')?.addEventListener('click',()=>{
+    duplicateElement(el);
+  });
+  
+  // Duplicate
+  document.querySelector('[data-action="duplicate"]')?.addEventListener('click',()=>{
+    duplicateElement(el);
+  });
+  
+  // Delete or Hide
+  document.querySelector('[data-action="delete"]')?.addEventListener('click',()=>{
+    const isFree = el.classList.contains('free-image') || el.classList.contains('free-text') || el.classList.contains('free-shape');
+    if(isFree){
+      if(confirm('削除しますか？')){
+        const tpl = el.closest('.tpl');
+        const tplId = tpl?.dataset.templateId;
+        el.remove();
+        if(tplId) saveFreeItems(tplId);
+        deselectAll();
+        showToast('削除したで');
+      }
+    }else{
+      if(confirm('この要素を非表示にしますか？\n（「全初期化」で復活します）')){
+        applyStyle(el, 'display', 'none');
+        deselectAll();
+        showToast('非表示にしたで');
+      }
+    }
+  });
+  
+  // ★ Rotation reset
+  document.querySelector('[data-action="rotation-reset"]')?.addEventListener('click',()=>{
+    setRotation(el, 0);
+    const slider = document.getElementById('prop-rotation');
+    if(slider){
+      slider.value = 0;
+      updateLabel(slider, '0°');
+    }
+    showToast('回転をリセット');
+  });
+  
+  // ★ Size buttons
+  document.querySelectorAll('[data-size]').forEach(btn=>{
+    btn.addEventListener('click',()=>resizeElement(el, btn.dataset.size));
+  });
+  
+  // ★ Replace logo
+  document.querySelector('[data-action="replace-logo"]')?.addEventListener('click',()=>{
+    const input = el.querySelector('input[type="file"]');
+    if(input) input.click();
+  });
+  
+  // ★ Replace photo
+  document.querySelector('[data-action="replace-photo"]')?.addEventListener('click',()=>{
+    const input = el.querySelector('input[type="file"]');
+    if(input) input.click();
+  });
+  
+  /* ===== Position pad ===== */
+  let moveStep = 10;
+  document.querySelectorAll('[data-step]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      moveStep = parseInt(b.dataset.step);
+      document.querySelectorAll('[data-step]').forEach(x=>x.classList.remove('is-active'));
+      b.classList.add('is-active');
+    });
+  });
+  document.querySelectorAll('[data-move]').forEach(b=>{
+    b.addEventListener('click',()=>moveElement(el, b.dataset.move, moveStep));
+  });
+  
+  /* ===== Size buttons ===== */
+  document.querySelectorAll('[data-size]').forEach(b=>{
+    b.addEventListener('click',()=>resizeElement(el, b.dataset.size));
+  });
+}
+
+function updateLabel(input, val){
+  const group = input.closest('.prop-group');
+  if(!group) return;
+  const valEl = group.querySelector('.prop-value');
+  if(valEl) valEl.textContent = val;
+}
+
+/* ============ MOVE / RESIZE BY BUTTON ============ */
+function moveElement(el, dir, step){
+  // 元レイアウト要素は absolute化が必要
+  const isFree = el.classList.contains('free-image') || el.classList.contains('free-text');
+  if(!isFree && !el.classList.contains('is-positioned')){
+    convertToPositioned(el);
+  }
+  
+  const curLeft = parseFloat(el.style.left) || 0;
+  const curTop = parseFloat(el.style.top) || 0;
+  let newLeft = curLeft, newTop = curTop;
+  
+  if(dir === 'left') newLeft -= step;
+  else if(dir === 'right') newLeft += step;
+  else if(dir === 'up') newTop -= step;
+  else if(dir === 'down') newTop += step;
+  else if(dir === 'center'){
+    const tpl = el.closest('.tpl');
+    const w = el.offsetWidth, h = el.offsetHeight;
+    newLeft = (tpl.offsetWidth - w) / 2;
+    newTop = (tpl.offsetHeight - h) / 2;
+  }
+  
+  el.style.left = newLeft + 'px';
+  el.style.top = newTop + 'px';
+  saveElementPosition(el);
+}
+
+function resizeElement(el, action){
+  const isFree = el.classList.contains('free-image') || el.classList.contains('free-text') || el.classList.contains('free-shape');
+  
+  // ★ 通常要素は is-positioned化しない！ フロー内でリサイズすることで、
+  // 下の文字が自然に押し下げられる（ロゴが大きくなれば下が下がる）
+  let w, h;
+  if(el.classList.contains('is-positioned') || isFree){
+    w = parseFloat(el.style.width) || el.offsetWidth;
+    h = parseFloat(el.style.height) || el.offsetHeight;
+  }else{
+    w = el.offsetWidth;
+    h = el.offsetHeight;
+  }
+  const step = 20;
+  
+  if(action === 'smaller'){ w = Math.max(40, w-step); h = Math.max(30, h-step) }
+  else if(action === 'larger'){ w += step; h += step }
+  else if(action === 'narrower') w = Math.max(40, w-step);
+  else if(action === 'wider') w += step;
+  else if(action === 'shorter') h = Math.max(30, h-step);
+  else if(action === 'taller') h += step;
+  
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
+  
+  // is-positioned済みなら位置として保存、そうでなければスタイルとして保存
+  if(el.classList.contains('is-positioned') || isFree){
+    saveElementPosition(el);
+  }else{
+    saveElementStyle(el, 'width', el.style.width);
+    saveElementStyle(el, 'height', el.style.height);
+  }
+}
+
+function convertToPositioned(el){
+  const tpl = el.closest('.tpl');
+  if(!tpl) return;
+  const tplRect = tpl.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+  const scale = tpl.offsetWidth / tplRect.width;
+  const x = (elRect.left - tplRect.left) * scale;
+  const y = (elRect.top - tplRect.top) * scale;
+  const w = el.offsetWidth, h = el.offsetHeight;
+  
+  // ★ 親要素＋祖父までの高さを固定する（フロー崩れ防止）
+  let parent = el.parentNode;
+  let depth = 0;
+  while(parent && parent !== tpl && depth < 3){
+    if(!parent.dataset.heightLocked){
+      parent.dataset.heightLocked = (parseInt(parent.dataset.heightLocked||'0') || 0) + 1 + '';
+      parent.dataset.origMinHeight = parent.style.minHeight || '__empty__';
+      parent.style.minHeight = parent.offsetHeight + 'px';
+    }
+    parent = parent.parentNode;
+    depth++;
+  }
+  
+  // ★ placeholder挿入（layoutのbackup）
+  if(!el.dataset.placeholderInserted && el.parentNode){
+    const ph = document.createElement('div');
+    ph.className = 'pos-placeholder';
+    const cs = window.getComputedStyle(el);
+    ph.style.cssText = `width:${w}px;height:${h}px;display:block;flex:0 0 ${w}px;visibility:hidden;pointer-events:none;`;
+    ph.dataset.placeholderFor = getElementId(el);
+    el.parentNode.insertBefore(ph, el);
+    el.dataset.placeholderInserted = '1';
+  }
+  
+  el.classList.add('is-positioned');
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
+}
+
+function saveElementPosition(el){
+  const tpl = el.closest('.tpl');
+  if(!tpl) return;
+  const tplId = tpl.dataset.templateId;
+  const isFree = el.classList.contains('free-image') || el.classList.contains('free-text');
+  if(isFree){
+    saveFreeItems(tplId);
+  }else{
+    const elId = getElementId(el);
+    setTplSubData(tplId, 'draggedPositions', elId, {
+      left: el.style.left, top: el.style.top,
+      width: el.style.width, height: el.style.height,
+    });
+  }
+}
+
+/* ============ STYLE APPLICATION ============ */
+function applyStyle(el, prop, val){
+  el.style[prop] = val;
+  saveElementStyle(el, prop, val);
+}
+
+function saveElementStyle(el, prop, val){
+  const tpl = el.closest('.tpl');
+  if(!tpl) return;
+  const tplId = tpl.dataset.templateId;
+  
+  // For free items, save differently
+  if(el.classList.contains('free-image') || el.classList.contains('free-text')){
+    saveFreeItems(tplId);
+    return;
+  }
+  
+  const elId = getElementId(el);
+  const s = getTplState(tplId);
+  if(!s[tplId].elementStyles) s[tplId].elementStyles = {};
+  if(!s[tplId].elementStyles[elId]) s[tplId].elementStyles[elId] = {};
+  s[tplId].elementStyles[elId][prop] = val;
+  saveState(s);
+}
+
+function setRotation(el, deg){
+  let transform = el.style.transform || '';
+  transform = transform.replace(/rotate\([^)]+\)/, '').trim();
+  el.style.transform = `${transform} rotate(${deg}deg)`.trim();
+  saveElementStyle(el, 'transform', el.style.transform);
+}
+
+/* ============ LAYER ============ */
+function moveLayer(el, direction){
+  const cur = parseInt(window.getComputedStyle(el).zIndex);
+  const curZ = isNaN(cur) ? 1 : cur;
+  const newZ = direction === 'front' ? curZ + 1 : Math.max(-5, curZ - 1);
+  el.style.zIndex = newZ;
+  saveElementStyle(el, 'zIndex', newZ);
+}
+
+/* ============ DRAG & DROP ============ */
+function makeDraggable(el){
+  if(el.dataset.draggableBound) return;
+  el.dataset.draggableBound = '1';
+  
+  // ★ v3: すべての要素をドラッグ可能にする（タップでは動かない安全装置あり）
+  const isFree = el.classList.contains('free-image') || el.classList.contains('free-text') || el.classList.contains('free-shape');
+  
+  let dragState = null;
+  let groupDragState = null; // ★ 複数選択でのグループドラッグ
+  
+  el.addEventListener('pointerdown', (e)=>{
+    if(e.target !== el && !el.contains(e.target)) return;
+    if(el === document.activeElement) return;
+    const tag = e.target.tagName;
+    if(e.target.classList.contains('fi-handle') || e.target.classList.contains('fi-delete') || e.target.classList.contains('fi-rotate') ||
+       e.target.classList.contains('ft-handle') || e.target.classList.contains('ft-delete') || e.target.classList.contains('ft-rotate')) return;
+    if(el.hasAttribute('contenteditable') && el.matches(':focus')) return;
+    
+    e.stopPropagation();
+    const tpl = el.closest('.tpl');
+    if(!tpl) return;
+    const tplRect = tpl.getBoundingClientRect();
+    const scaleX = tpl.offsetWidth / tplRect.width;
+    
+    // ★ 複数選択中、かつ自分が選択メンバーなら → グループドラッグ（transform方式）
+    if(multiSelected.length >= 2 && multiSelected.includes(el)){
+      groupDragState = {
+        startX: e.clientX, startY: e.clientY,
+        scale: scaleX, moved: false,
+        items: []
+      };
+      
+      // ★ ドラッグ開始時：各要素の現在座標とtransformを記録
+      multiSelected.forEach(m=>{
+        const mr = m.getBoundingClientRect();
+        groupDragState.items.push({
+          el: m,
+          origTransform: m.style.transform || '',
+          initX: (mr.left - tplRect.left) * scaleX,
+          initY: (mr.top - tplRect.top) * scaleX,
+          w: m.offsetWidth,
+          h: m.offsetHeight,
+          wasPositioned: m.classList.contains('is-positioned'),
+          isFree: m.classList.contains('free-image') || m.classList.contains('free-text') || m.classList.contains('free-shape'),
+        });
+      });
+      
+      try{el.setPointerCapture(e.pointerId)}catch(e){}
+      return; // 通常のドラッグ処理スキップ
+    }
+    
+    const isFree = el.classList.contains('free-image') || el.classList.contains('free-text');
+    
+    // ★ 重要：ここではまだ is-positioned 化しない！
+    // 実際に5px以上動いた時点で初めて変換する
+    dragState = {
+      startX: e.clientX, startY: e.clientY,
+      origLeft: parseFloat(el.style.left) || 0,
+      origTop: parseFloat(el.style.top) || 0,
+      scale: scaleX, moved: false,
+      needsAbsolute: !isFree && !el.classList.contains('is-positioned'),
+      isFree: isFree,
+    };
+    try{el.setPointerCapture(e.pointerId)}catch(e){}
+  });
+  
+  // ★ グループドラッグの move/up
+  el.addEventListener('pointermove', (e)=>{
+    if(groupDragState){
+      const dx = (e.clientX - groupDragState.startX) * groupDragState.scale;
+      const dy = (e.clientY - groupDragState.startY) * groupDragState.scale;
+      if(Math.abs(dx) > 5 || Math.abs(dy) > 5) groupDragState.moved = true;
+      if(groupDragState.moved){
+        // ★ transform translate で動かす（フロー保持・レイアウト崩れない）
+        groupDragState.items.forEach(({el:m, origTransform})=>{
+          // 既存のtransform（rotateなど）を保持しつつ、translateを差し替え
+          let rest = origTransform.replace(/translate\([^)]+\)/, '').trim();
+          m.style.transform = `translate(${dx}px, ${dy}px) ${rest}`.trim();
+        });
+      }
+      return;
+    }
+    if(!dragState) return;
+    const dx = (e.clientX - dragState.startX) * dragState.scale;
+    const dy = (e.clientY - dragState.startY) * dragState.scale;
+    
+    // ★ 移動量が5px以上になった時点で初めてドラッグ判定
+    if(!dragState.moved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)){
+      dragState.moved = true;
+      if(dragState.needsAbsolute){
+        convertToPositioned(el);
+        dragState.origLeft = parseFloat(el.style.left) || 0;
+        dragState.origTop = parseFloat(el.style.top) || 0;
+      }
+    }
+    
+    if(dragState.moved){
+      el.style.left = (dragState.origLeft + dx) + 'px';
+      el.style.top = (dragState.origTop + dy) + 'px';
+    }
+  });
+  
+  el.addEventListener('pointerup', (e)=>{
+    // ★ グループドラッグ終了：transform を absolute に固定化
+    if(groupDragState){
+      const moved = groupDragState.moved;
+      const dx = (e.clientX - groupDragState.startX) * groupDragState.scale;
+      const dy = (e.clientY - groupDragState.startY) * groupDragState.scale;
+      
+      if(moved){
+        const tpl = el.closest('.tpl');
+        groupDragState.items.forEach(item=>{
+          const m = item.el;
+          // transformからtranslateだけ除去
+          m.style.transform = item.origTransform.replace(/translate\([^)]+\)/, '').trim();
+          
+          const newX = item.initX + dx;
+          const newY = item.initY + dy;
+          
+          if(!item.isFree && !item.wasPositioned){
+            // 親のmin-heightをロック（フロー崩壊防止）
+            let parent = m.parentNode;
+            let depth = 0;
+            while(parent && parent !== tpl && depth < 3){
+              if(!parent.dataset.heightLocked){
+                parent.dataset.heightLocked = '1';
+                parent.dataset.origMinHeight = parent.style.minHeight || '__empty__';
+                parent.style.minHeight = parent.offsetHeight + 'px';
+              }
+              parent = parent.parentNode;
+              depth++;
+            }
+            m.classList.add('is-positioned');
+            m.style.width = item.w + 'px';
+            m.style.height = item.h + 'px';
+          }
+          m.style.left = newX + 'px';
+          m.style.top = newY + 'px';
+          
+          safeRun('位置保存', ()=>saveElementPosition(m));
+        });
+      }
+      groupDragState = null;
+      return;
+    }
+    
+    if(!dragState) return;
+    const wasMoved = dragState.moved;
+    dragState = null;
+    
+    if(wasMoved){
+      const tpl = el.closest('.tpl');
+      if(tpl){
+        const tplId = tpl.dataset.templateId;
+        const isFree = el.classList.contains('free-image') || el.classList.contains('free-text');
+        if(isFree){
+          saveFreeItems(tplId);
+        }else{
+          const elId = getElementId(el);
+          setTplSubData(tplId, 'draggedPositions', elId, {
+            left: el.style.left, top: el.style.top,
+            width: el.style.width, height: el.style.height,
+          });
+        }
+      }
+    }else{
+      // タップのみ → 選択（Shift押下時は複数選択追加）
+      selectElement(el, e.shiftKey ? 'add' : null);
+    }
+  });
+  
+  el.addEventListener('pointercancel',()=>{dragState=null; groupDragState=null});
+}
+
+function resetPosition(el){
+  el.classList.remove('is-positioned');
+  el.style.left = '';
+  el.style.top = '';
+  el.style.width = '';
+  el.style.height = '';
+  // ★ placeholder削除
+  if(el.dataset.placeholderInserted){
+    const elId = getElementId(el);
+    const ph = el.parentNode?.querySelector(`.pos-placeholder[data-placeholder-for="${CSS.escape(elId)}"]`);
+    if(ph) ph.remove();
+    delete el.dataset.placeholderInserted;
+  }
+  const tpl = el.closest('.tpl');
+  if(tpl){
+    const elId = getElementId(el);
+    const s = getTplState(tpl.dataset.templateId);
+    if(s[tpl.dataset.templateId].draggedPositions){
+      delete s[tpl.dataset.templateId].draggedPositions[elId];
+      saveState(s);
+    }
+  }
+}
+
+/* ============ TEXT INPUT (contenteditable) ============ */
+function attachTextInputHandlers(){
+  document.querySelectorAll('.tpl [contenteditable="true"]').forEach((el,idx)=>{
+    if(el.dataset.textBound) return;
+    el.dataset.textBound = '1';
+    
+    // Save innerHTML on edit
+    el.addEventListener('input',()=>{
+      const tpl = el.closest('.tpl');
+      if(!tpl) return;
+      const elId = getElementId(el);
+      setTplSubData(tpl.dataset.templateId, 'texts', elId, el.innerHTML);
+    });
+    
+    el.addEventListener('focus',()=>{
+      selectElement(el);
+    });
+    
+    // Double click to enter edit mode  
+    el.addEventListener('dblclick',(e)=>{
+      e.stopPropagation();
+      el.focus();
+      // Place cursor at end
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+  });
+}
+
+/* ============ PHOTO SLOT ============ */
+function attachPhotoHandlers(){
+  document.querySelectorAll('.photo-slot').forEach(slot=>{
+    if(slot.dataset.photoBound) return;
+    slot.dataset.photoBound = '1';
+    const input = document.createElement('input');
+    input.type='file'; input.accept='image/*';
+    input.style.display='none';
+    slot.appendChild(input);
+    
+    // ★ ダブルクリックで差し替え（シングルは選択のみ）
+    slot.addEventListener('dblclick',(e)=>{
+      if(e.target === input) return;
+      e.stopPropagation();
+      input.click();
+    });
+    
+    input.addEventListener('change',(e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const r = new FileReader();
+      r.onload = (ev)=>{
+        applyImageToSlot(slot, ev.target.result);
+        const tpl = slot.closest('.tpl');
+        if(tpl) setTplSubData(tpl.dataset.templateId,'images',slot.dataset.photoId, ev.target.result);
+        showToast('画像を更新したで✨');
+      };
+      r.readAsDataURL(file);
+    });
+  });
+}
+function applyImageToSlot(slot, src){
+  const input = slot.querySelector('input[type="file"]');
+  slot.innerHTML = '';
+  if(input) slot.appendChild(input);
+  const img = document.createElement('img');
+  img.src = src;
+  slot.insertBefore(img, input);
+}
+
+/* ============ LOGO SLOT ============ */
+function attachLogoHandlers(){
+  document.querySelectorAll('.logo-slot').forEach(slot=>{
+    if(slot.dataset.logoBound) return;
+    slot.dataset.logoBound = '1';
+    const input = document.createElement('input');
+    input.type='file'; input.accept='image/*';
+    input.style.display='none';
+    slot.appendChild(input);
+    
+    // ★ 変更：クリックは選択のみ、ダブルクリックで差し替え
+    slot.addEventListener('dblclick',(e)=>{
+      if(e.target === input) return;
+      e.stopPropagation();
+      input.click();
+    });
+    
+    input.addEventListener('change',(e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const r = new FileReader();
+      r.onload = (ev)=>{
+        applyImageToLogoSlot(slot, ev.target.result);
+        const tpl = slot.closest('.tpl');
+        if(tpl) setTplSubData(tpl.dataset.templateId,'logos',slot.dataset.logoSlot, ev.target.result);
+        showToast('ロゴ更新したで🏷');
+      };
+      r.readAsDataURL(file);
+    });
+  });
+}
+function applyImageToLogoSlot(slot, src){
+  const input = slot.querySelector('input[type="file"]');
+  if(!slot.dataset.originalContent){
+    const clone = slot.cloneNode(true);
+    const inp = clone.querySelector('input');
+    if(inp) inp.remove();
+    slot.dataset.originalContent = clone.innerHTML;
+  }
+  slot.innerHTML = '';
+  if(input) slot.appendChild(input);
+  const img = document.createElement('img');
+  img.src = src;
+  slot.insertBefore(img, input);
+}
+
+/* ============ BACKGROUND ============ */
+function applyBackground(tplId, bgValue){
+  const layer = document.querySelector(`.bg-layer[data-bg-layer="${tplId}"]`);
+  if(!layer) return;
+  if(!bgValue || bgValue === 'none'){
+    layer.style.background = '';
+    layer.style.backgroundImage = '';
+    return;
+  }
+  if(bgValue.startsWith('data:image')){
+    layer.style.background = '';
+    layer.style.backgroundImage = `url("${bgValue}")`;
+    layer.style.backgroundSize = 'cover';
+    layer.style.backgroundPosition = 'center';
+  }else if(bgValue.startsWith('preset:')){
+    const preset = bgValue.substring(7);
+    if(BG_PRESETS[preset]){
+      layer.style.background = BG_PRESETS[preset].css;
+      layer.style.backgroundSize = preset==='dots'?'20px 20px, cover':'cover';
+    }
+  }
+}
+
+function buildBgPresets(){
+  const c = document.getElementById('bg-presets');
+  c.innerHTML = '';
+  Object.entries(BG_PRESETS).forEach(([key,p])=>{
+    const div = document.createElement('div');
+    div.className = 'bg-preset';
+    div.style.background = p.css;
+    div.style.backgroundSize = key==='dots'?'12px 12px, cover':'cover';
+    div.innerHTML = `<div class="bg-preset__label">${p.label}</div>`;
+    div.addEventListener('click',()=>{
+      const val = key==='none'?null:`preset:${key}`;
+      applyBackground(currentTemplate, val);
+      setTplData(currentTemplate,'background',val);
+      document.querySelectorAll('.bg-preset').forEach(b=>b.classList.remove('is-active'));
+      div.classList.add('is-active');
+      showToast('背景を変更したで🎨');
+    });
+    c.appendChild(div);
+  });
+}
+
+function toggleBgMenu(btnEl){
+  const menu = document.getElementById('bg-menu');
+  bgMenuVisible = !bgMenuVisible;
+  if(bgMenuVisible){
+    const rect = btnEl.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 6 + window.scrollY) + 'px';
+    menu.style.left = rect.left + 'px';
+    menu.classList.add('is-shown');
+  }else menu.classList.remove('is-shown');
+}
+
+/* ============ FREE IMAGE ============ */
+function createFreeImage(tplId, opts){
+  const tpl = document.querySelector(`.tpl[data-template-id="${tplId}"]`);
+  if(!tpl) return null;
+  const id = opts.id || ('fi-'+Date.now()+'-'+(++freeImageIdCounter));
+  const wrap = document.createElement('div');
+  wrap.className = 'free-image';
+  wrap.dataset.freeImageId = id;
+  wrap.style.left = (opts.x||100)+'px';
+  wrap.style.top = (opts.y||100)+'px';
+  wrap.style.width = (opts.w||200)+'px';
+  wrap.style.height = (opts.h||200)+'px';
+  if(opts.opacity != null) wrap.style.opacity = opts.opacity;
+  if(opts.zIndex != null) wrap.style.zIndex = opts.zIndex;
+  if(opts.transform) wrap.style.transform = opts.transform;
+  
+  const img = document.createElement('img');
+  img.src = opts.src; img.draggable = false;
+  wrap.appendChild(img);
+  
+  const handle = document.createElement('div'); handle.className='fi-handle'; wrap.appendChild(handle);
+  const del = document.createElement('button'); del.className='fi-delete'; del.innerHTML='×'; wrap.appendChild(del);
+  const rot = document.createElement('div'); rot.className='fi-rotate'; rot.innerHTML='↻'; wrap.appendChild(rot);
+  
+  tpl.appendChild(wrap);
+  attachFreeImageHandle(wrap, tplId);
+  makeDraggable(wrap);
+  return wrap;
+}
+
+function attachFreeImageHandle(wrap, tplId){
+  const handle = wrap.querySelector('.fi-handle');
+  const del = wrap.querySelector('.fi-delete');
+  const rot = wrap.querySelector('.fi-rotate');
+  
+  // Resize
+  let rs = null;
+  handle.addEventListener('pointerdown',(e)=>{
+    e.stopPropagation(); e.preventDefault();
+    const tpl = wrap.closest('.tpl');
+    const tplRect = tpl.getBoundingClientRect();
+    rs = {
+      sx:e.clientX, sy:e.clientY,
+      ow:parseFloat(wrap.style.width), oh:parseFloat(wrap.style.height),
+      scale: tpl.offsetWidth / tplRect.width,
+    };
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove',(e)=>{
+    if(!rs) return;
+    const dx = (e.clientX-rs.sx)*rs.scale;
+    const dy = (e.clientY-rs.sy)*rs.scale;
+    wrap.style.width = Math.max(40, rs.ow+dx)+'px';
+    wrap.style.height = Math.max(40, rs.oh+dy)+'px';
+  });
+  handle.addEventListener('pointerup',()=>{if(rs){rs=null; saveFreeItems(tplId)}});
+  
+  // Rotate
+  let rotState = null;
+  rot.addEventListener('pointerdown',(e)=>{
+    e.stopPropagation(); e.preventDefault();
+    const rect = wrap.getBoundingClientRect();
+    rotState = {
+      cx: rect.left + rect.width/2,
+      cy: rect.top + rect.height/2,
+      startAngle: Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2)),
+      origRotation: getCurrentRotation(wrap),
+    };
+    rot.setPointerCapture(e.pointerId);
+  });
+  rot.addEventListener('pointermove',(e)=>{
+    if(!rotState) return;
+    const ang = Math.atan2(e.clientY - rotState.cy, e.clientX - rotState.cx);
+    const delta = (ang - rotState.startAngle) * 180 / Math.PI;
+    setRotation(wrap, Math.round(rotState.origRotation + delta));
+  });
+  rot.addEventListener('pointerup',()=>{
+    if(rotState){
+      rotState = null;
+      saveFreeItems(tplId);
+      if(selectedElement === wrap) buildPropertiesPanel(wrap);
+    }
+  });
+  
+  // Delete
+  del.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    if(confirm('この画像を削除しますか？')){
+      wrap.remove(); saveFreeItems(tplId); deselectAll(); showToast('画像削除');
+    }
+  });
+}
+
+function getCurrentRotation(el){
+  const t = el.style.transform || '';
+  const m = t.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
+  return m ? parseFloat(m[1]) : 0;
+}
+
+/* ============ FREE TEXT ============ */
+function createFreeText(tplId, opts){
+  const tpl = document.querySelector(`.tpl[data-template-id="${tplId}"]`);
+  if(!tpl) return null;
+  const id = opts.id || ('ft-'+Date.now()+'-'+(++freeTextIdCounter));
+  const wrap = document.createElement('div');
+  wrap.className = 'free-text';
+  wrap.dataset.freeTextId = id;
+  wrap.style.left = (opts.x||100)+'px';
+  wrap.style.top = (opts.y||100)+'px';
+  wrap.style.width = (opts.w||200)+'px';
+  wrap.style.height = (opts.h||60)+'px';
+  if(opts.opacity != null) wrap.style.opacity = opts.opacity;
+  if(opts.zIndex != null) wrap.style.zIndex = opts.zIndex;
+  if(opts.transform) wrap.style.transform = opts.transform;
+  
+  const ed = document.createElement('div');
+  ed.setAttribute('contenteditable','true');
+  ed.style.cssText = `font-family:${opts.fontFamily||"'Noto Serif JP',serif"};font-size:${opts.fontSize||'24px'};color:${opts.color||'#1b7373'};font-weight:${opts.fontWeight||'500'};text-align:${opts.textAlign||'left'};`;
+  ed.innerHTML = opts.html || 'テキストを入力';
+  
+  // Save text changes
+  ed.addEventListener('input',()=>saveFreeItems(tplId));
+  
+  wrap.appendChild(ed);
+  
+  const handle = document.createElement('div'); handle.className='ft-handle'; wrap.appendChild(handle);
+  const del = document.createElement('button'); del.className='ft-delete'; del.innerHTML='×'; wrap.appendChild(del);
+  const rot = document.createElement('div'); rot.className='ft-rotate'; rot.innerHTML='↻'; wrap.appendChild(rot);
+  
+  tpl.appendChild(wrap);
+  
+  // Resize / Rotate / Delete handlers (same as image)
+  let rs = null;
+  handle.addEventListener('pointerdown',(e)=>{
+    e.stopPropagation(); e.preventDefault();
+    const tplR = tpl.getBoundingClientRect();
+    rs = {sx:e.clientX,sy:e.clientY,ow:parseFloat(wrap.style.width),oh:parseFloat(wrap.style.height),scale:tpl.offsetWidth/tplR.width};
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove',(e)=>{
+    if(!rs) return;
+    const dx=(e.clientX-rs.sx)*rs.scale, dy=(e.clientY-rs.sy)*rs.scale;
+    wrap.style.width = Math.max(40,rs.ow+dx)+'px';
+    wrap.style.height = Math.max(30,rs.oh+dy)+'px';
+  });
+  handle.addEventListener('pointerup',()=>{if(rs){rs=null;saveFreeItems(tplId)}});
+  
+  let rotState = null;
+  rot.addEventListener('pointerdown',(e)=>{
+    e.stopPropagation(); e.preventDefault();
+    const rect = wrap.getBoundingClientRect();
+    rotState = {cx:rect.left+rect.width/2,cy:rect.top+rect.height/2,startAngle:Math.atan2(e.clientY-(rect.top+rect.height/2),e.clientX-(rect.left+rect.width/2)),origRotation:getCurrentRotation(wrap)};
+    rot.setPointerCapture(e.pointerId);
+  });
+  rot.addEventListener('pointermove',(e)=>{
+    if(!rotState) return;
+    const ang = Math.atan2(e.clientY-rotState.cy,e.clientX-rotState.cx);
+    const delta=(ang-rotState.startAngle)*180/Math.PI;
+    setRotation(wrap, Math.round(rotState.origRotation+delta));
+  });
+  rot.addEventListener('pointerup',()=>{if(rotState){rotState=null;saveFreeItems(tplId);if(selectedElement===wrap) buildPropertiesPanel(wrap)}});
+  
+  del.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    if(confirm('このテキストを削除しますか？')){
+      wrap.remove(); saveFreeItems(tplId); deselectAll(); showToast('削除');
+    }
+  });
+  
+  makeDraggable(wrap);
+  return wrap;
+}
+
+/* ============ SAVE FREE ITEMS ============ */
+function saveFreeItems(tplId){
+  const tpl = document.querySelector(`.tpl[data-template-id="${tplId}"]`);
+  if(!tpl) return;
+  const images = [];
+  tpl.querySelectorAll('.free-image').forEach(fi=>{
+    images.push({
+      id: fi.dataset.freeImageId,
+      src: fi.querySelector('img').src,
+      x: parseFloat(fi.style.left), y: parseFloat(fi.style.top),
+      w: parseFloat(fi.style.width), h: parseFloat(fi.style.height),
+      opacity: fi.style.opacity || '1',
+      zIndex: fi.style.zIndex || '',
+      transform: fi.style.transform || '',
+    });
+  });
+  setTplData(tplId, 'freeImages', images);
+  
+  const texts = [];
+  tpl.querySelectorAll('.free-text').forEach(ft=>{
+    const ed = ft.querySelector('[contenteditable]');
+    texts.push({
+      id: ft.dataset.freeTextId,
+      x: parseFloat(ft.style.left), y: parseFloat(ft.style.top),
+      w: parseFloat(ft.style.width), h: parseFloat(ft.style.height),
+      html: ed ? ed.innerHTML : '',
+      fontFamily: ed?.style.fontFamily, fontSize: ed?.style.fontSize,
+      color: ed?.style.color, fontWeight: ed?.style.fontWeight,
+      textAlign: ed?.style.textAlign,
+      opacity: ft.style.opacity || '1',
+      zIndex: ft.style.zIndex || '',
+      transform: ft.style.transform || '',
+    });
+  });
+  setTplData(tplId, 'freeTexts', texts);
+  
+  // ★ Save shapes
+  const shapes = [];
+  tpl.querySelectorAll('.free-shape').forEach(fs=>{
+    shapes.push({
+      type: fs.dataset.shape,
+      x: parseFloat(fs.style.left), y: parseFloat(fs.style.top),
+      w: parseFloat(fs.style.width), h: parseFloat(fs.style.height),
+      background: fs.style.background || '',
+      borderColor: fs.style.borderColor || '',
+      opacity: fs.style.opacity || '1',
+      zIndex: fs.style.zIndex || '',
+      transform: fs.style.transform || '',
+    });
+  });
+  setTplData(tplId, 'freeShapes', shapes);
+}
+
+/* ============ DUPLICATE ============ */
+function duplicateElement(el){
+  if(el.classList.contains('free-image')){
+    const tpl = el.closest('.tpl');
+    const newEl = createFreeImage(tpl.dataset.templateId, {
+      src: el.querySelector('img').src,
+      x: parseFloat(el.style.left)+20, y: parseFloat(el.style.top)+20,
+      w: parseFloat(el.style.width), h: parseFloat(el.style.height),
+      opacity: el.style.opacity, transform: el.style.transform,
+    });
+    saveFreeItems(tpl.dataset.templateId);
+    if(newEl) selectElement(newEl);
+    showToast('画像を複製したで📋');
+  }else if(el.classList.contains('free-text')){
+    const tpl = el.closest('.tpl');
+    const ed = el.querySelector('[contenteditable]');
+    const newEl = createFreeText(tpl.dataset.templateId, {
+      x: parseFloat(el.style.left)+20, y: parseFloat(el.style.top)+20,
+      w: parseFloat(el.style.width), h: parseFloat(el.style.height),
+      html: ed?.innerHTML, fontFamily: ed?.style.fontFamily,
+      fontSize: ed?.style.fontSize, color: ed?.style.color,
+      fontWeight: ed?.style.fontWeight, textAlign: ed?.style.textAlign,
+      opacity: el.style.opacity, transform: el.style.transform,
+    });
+    saveFreeItems(tpl.dataset.templateId);
+    if(newEl) selectElement(newEl);
+    showToast('テキストを複製したで📋');
+  }else if(el.hasAttribute('contenteditable')){
+    // Convert to free text and duplicate
+    const tpl = el.closest('.tpl');
+    const cs = window.getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    const tplRect = tpl.getBoundingClientRect();
+    const scale = tpl.offsetWidth / tplRect.width;
+    const newEl = createFreeText(tpl.dataset.templateId, {
+      x: (rect.left - tplRect.left)*scale + 20,
+      y: (rect.top - tplRect.top)*scale + 20,
+      w: rect.width*scale, h: rect.height*scale,
+      html: el.innerHTML,
+      fontFamily: cs.fontFamily, fontSize: cs.fontSize,
+      color: cs.color, fontWeight: cs.fontWeight, textAlign: cs.textAlign,
+    });
+    saveFreeItems(tpl.dataset.templateId);
+    if(newEl) selectElement(newEl);
+    showToast('テキストを複製したで📋');
+  }
+}
+
+/* ============ STATE RESTORE ============ */
+function restoreState(){
+  const state = loadState();
+  TEMPLATES.forEach(tplId=>{
+    if(!state[tplId]) return;
+    const d = state[tplId];
+    const tpl = document.querySelector(`.tpl[data-template-id="${tplId}"]`);
+    if(!tpl) return;
+    
+    // First, regenerate IDs by triggering query
+    tpl.querySelectorAll('*').forEach((el,idx)=>{
+      el.dataset.elId = `${tplId}-el-${idx}`;
+    });
+    
+    // Texts (contenteditable HTML)
+    if(d.texts) Object.entries(d.texts).forEach(([elId, html])=>{
+      const el = tpl.querySelector(`[data-el-id="${elId}"]`);
+      if(el) el.innerHTML = html;
+    });
+    
+    // Element styles
+    if(d.elementStyles) Object.entries(d.elementStyles).forEach(([elId, styles])=>{
+      const el = tpl.querySelector(`[data-el-id="${elId}"]`);
+      if(el) Object.entries(styles).forEach(([prop, val])=>{
+        el.style[prop] = val;
+      });
+    });
+    
+    // Dragged positions
+    if(d.draggedPositions) Object.entries(d.draggedPositions).forEach(([elId, pos])=>{
+      const el = tpl.querySelector(`[data-el-id="${elId}"]`);
+      if(el){
+        el.classList.add('is-positioned');
+        if(pos.left) el.style.left = pos.left;
+        if(pos.top) el.style.top = pos.top;
+        if(pos.width) el.style.width = pos.width;
+        if(pos.height) el.style.height = pos.height;
+      }
+    });
+    
+    // Photo slots
+    if(d.images) Object.entries(d.images).forEach(([pid, src])=>{
+      const s = tpl.querySelector(`.photo-slot[data-photo-id="${pid}"]`);
+      if(s) applyImageToSlot(s, src);
+    });
+    
+    // Logos
+    if(d.logos) Object.entries(d.logos).forEach(([lid, src])=>{
+      const s = tpl.querySelector(`.logo-slot[data-logo-slot="${lid}"]`);
+      if(s) applyImageToLogoSlot(s, src);
+    });
+    
+    // Background
+    if(d.background) applyBackground(tplId, d.background);
+    
+    // Free images
+    if(d.freeImages) d.freeImages.forEach(fi=>createFreeImage(tplId, fi));
+    
+    // Free texts
+    if(d.freeTexts) d.freeTexts.forEach(ft=>createFreeText(tplId, ft));
+  });
+}
+
+/* ============ TEMPLATE SWITCH ============ */
+function showTemplate(id){
+  currentTemplate = id;
+  document.querySelectorAll('.tpl').forEach(el=>{
+    el.style.display = el.dataset.templateId === id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.classList.toggle('is-active', btn.dataset.template === id);
+  });
+  
+  // サイズラベル
+  const frame = document.getElementById('canvas-frame');
+  const labels = {
+    menu: 'A4 縦 ・ 210 × 297 mm',
+    women: 'A4 縦 ・ 210 × 297 mm',
+    men: 'A4 縦 ・ 210 × 297 mm',
+    referral: '名刺サイズ横長 ・ 91 × 55 mm',
+  };
+  if(frame) frame.dataset.sizeLabel = labels[id] || '';
+  
+  deselectAll();
+  fitToView();
+  // スクロール位置を上端に
+  setTimeout(()=>{
+    const wrap = document.querySelector('.canvas-wrap');
+    if(wrap) wrap.scrollTop = 0;
+  }, 100);
+}
+
+function fitToView(){
+  const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+  if(!tpl) return;
+  const wrap = document.querySelector('.canvas-wrap');
+  const isMobile = window.innerWidth <= 768;
+  const wrapW = wrap.clientWidth - (isMobile ? 12 : 40);
+  const tplW = tpl.offsetWidth;
+  const scale = Math.min(wrapW / tplW, 1);
+  const frame = document.getElementById('canvas-frame');
+  frame.style.transform = `scale(${scale})`;
+  frame.style.height = (tpl.offsetHeight * scale) + 'px';
+  frame.style.width = (tplW * scale) + 'px';
+}
+
+/* ============ PNG DOWNLOAD ============ */
+async function downloadAsPNG(){
+  const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+  if(!tpl) return;
+  
+  document.querySelectorAll('.is-selected').forEach(el=>el.classList.remove('is-selected'));
+  document.activeElement?.blur();
+  
+  showToast('画像を生成中... 待ってな⏳');
+  document.body.classList.add('is-exporting');
+  
+  const frame = document.getElementById('canvas-frame');
+  const orig = frame.style.transform;
+  frame.style.transform = 'scale(1)';
+  await new Promise(r=>setTimeout(r,150));
+  
+  try{
+    const canvas = await html2canvas(tpl, {scale:2.5, useCORS:true, backgroundColor:'#fff', logging:false});
+    const link = document.createElement('a');
+    link.download = `KANOA_${currentTemplate}_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast(`${TEMPLATE_NAMES[currentTemplate]}を保存したで！🎉`);
+  }catch(err){
+    console.error(err);
+    showToast('保存失敗...');
+  }finally{
+    frame.style.transform = orig;
+    document.body.classList.remove('is-exporting');
+    if(selectedElement) selectedElement.classList.add('is-selected');
+  }
+}
+
+/* ============ TOAST ============ */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('is-shown');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('is-shown'), 2500);
+}
+
+/* ============ RESET ============ */
+function resetCurrent(){
+  const s = loadState();
+  delete s[currentTemplate];
+  saveState(s);
+  location.reload();
+}
+
+/* ============ UTIL: rgb to hex ============ */
+function rgbToHex(rgb){
+  if(!rgb) return '#000000';
+  if(rgb.startsWith('#')) return rgb;
+  const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if(!m) return '#000000';
+  const toHex = (n)=>parseInt(n).toString(16).padStart(2,'0');
+  return '#' + toHex(m[1]) + toHex(m[2]) + toHex(m[3]);
+}
+
+/* ============ DESIGN SAVE/LOAD ============ */
+const SAVED_KEY = 'kanoa-saved-designs';
+let currentDesignId = null;  // 編集中の保存済みデザインID（null=テンプレート編集中）
+let currentDesignName = null;
+
+function loadSavedList(){
+  try{return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]')}catch(e){return []}
+}
+function persistSavedList(list){
+  try{localStorage.setItem(SAVED_KEY, JSON.stringify(list))}catch(e){console.warn(e)}
+}
+
+// 現在のテンプレートの編集状態を取得（保存用にスナップショット）
+function captureCurrentState(){
+  const state = loadState();
+  return {
+    baseTemplate: currentTemplate,
+    data: state[currentTemplate] || {},
+  };
+}
+
+// 保存済みデザインを開く
+function openSavedDesign(design){
+  // 現在のテンプレートエリアにデザインデータを流し込む
+  const tplId = design.baseTemplate;
+  const state = loadState();
+  state[tplId] = JSON.parse(JSON.stringify(design.data || {}));
+  saveState(state);
+  
+  currentDesignId = design.id;
+  currentDesignName = design.name;
+  updateCurrentIndicator();
+  
+  // テンプレートを切り替え（reload）
+  location.hash = `#design=${design.id}&tpl=${tplId}`;
+  location.reload();
+}
+
+// 「× 編集終了」インジケータ
+function clearCurrentDesign(){
+  if(currentDesignId){
+    // 編集中のデザインから抜ける = テンプレートをクリアして元に戻す
+    if(!confirm('編集を終了してテンプレートに戻りますか？\n（保存していない変更は失われます）')) return;
+    const state = loadState();
+    delete state[currentTemplate];
+    saveState(state);
+    currentDesignId = null;
+    currentDesignName = null;
+    location.hash = '';
+    location.reload();
+  }
+}
+
+function updateCurrentIndicator(){
+  const ind = document.getElementById('current-indicator');
+  const name = document.getElementById('current-name');
+  if(currentDesignId && currentDesignName){
+    name.textContent = currentDesignName;
+    ind.style.display = 'inline-flex';
+  }else{
+    ind.style.display = 'none';
+  }
+}
+
+// 保存ダイアログを開く
+function openSaveDialog(){
+  document.getElementById('save-name-input').value = currentDesignName || '';
+  document.getElementById('save-modal-title').textContent = currentDesignId ? '上書き保存 or 別名で保存' : '名前を付けて保存';
+  document.getElementById('save-modal-desc').textContent = currentDesignId 
+    ? '名前を変えれば「別名で保存」、そのままなら「上書き保存」になるで。'
+    : 'このデザインに名前を付けて保存できる。次から呼び出して編集できるで。';
+  document.getElementById('save-modal-bg').classList.add('is-shown');
+  setTimeout(()=>document.getElementById('save-name-input').focus(), 100);
+}
+
+// 保存実行
+function executeSave(){
+  const name = document.getElementById('save-name-input').value.trim();
+  if(!name){
+    showToast('名前を入力してな');
+    return;
+  }
+  
+  const list = loadSavedList();
+  const snapshot = captureCurrentState();
+  
+  // 同じID（上書き）か、同じ名前（上書き確認）か、新規か
+  if(currentDesignId){
+    // 編集中のデザインを上書き
+    const idx = list.findIndex(d => d.id === currentDesignId);
+    if(idx >= 0){
+      // 名前が変わってたら新規保存（別名で保存）
+      if(list[idx].name !== name){
+        // 新規として保存
+        const newDesign = {
+          id: 'design-' + Date.now(),
+          name: name,
+          baseTemplate: snapshot.baseTemplate,
+          data: snapshot.data,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+        list.unshift(newDesign);
+        persistSavedList(list);
+        currentDesignId = newDesign.id;
+        currentDesignName = newDesign.name;
+        updateCurrentIndicator();
+        showToast(`「${name}」を別名で保存したで💾`);
+      }else{
+        // 上書き
+        list[idx].data = snapshot.data;
+        list[idx].updatedAt = Date.now();
+        persistSavedList(list);
+        showToast(`「${name}」を上書き保存したで💾`);
+      }
+    }
+  }else{
+    // 新規保存
+    const newDesign = {
+      id: 'design-' + Date.now(),
+      name: name,
+      baseTemplate: snapshot.baseTemplate,
+      data: snapshot.data,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    list.unshift(newDesign);
+    persistSavedList(list);
+    currentDesignId = newDesign.id;
+    currentDesignName = newDesign.name;
+    updateCurrentIndicator();
+    showToast(`「${name}」を保存したで💾`);
+  }
+  
+  document.getElementById('save-modal-bg').classList.remove('is-shown');
+}
+
+// 一覧モーダルを開く
+function openListModal(){
+  const list = loadSavedList();
+  const body = document.getElementById('saved-list-body');
+  
+  if(list.length === 0){
+    body.innerHTML = `
+      <div class="saved-empty">
+        <div class="saved-empty-icon">📭</div>
+        まだ保存されたデザインはないで<br>
+        テンプレートを編集して「💾保存」してな
+      </div>`;
+  }else{
+    body.innerHTML = list.map(d => {
+      const tplIcon = {menu:'📋',women:'🌸',men:'💼',referral:'🎁'}[d.baseTemplate] || '🎨';
+      const date = new Date(d.updatedAt);
+      const dateStr = `${date.getFullYear()}/${(date.getMonth()+1)}/${date.getDate()}`;
+      return `
+        <div class="saved-item" data-design-id="${d.id}">
+          <div class="saved-item__thumb">${tplIcon}</div>
+          <div class="saved-item__info">
+            <div class="saved-item__name">${escapeHtml(d.name)}</div>
+            <div class="saved-item__meta">${TEMPLATE_NAMES[d.baseTemplate] || d.baseTemplate} · ${dateStr}更新</div>
+          </div>
+          <div class="saved-item__actions">
+            <button class="saved-item__btn" data-action="open" title="開く">📂</button>
+            <button class="saved-item__btn" data-action="rename" title="名前変更">✏️</button>
+            <button class="saved-item__btn saved-item__btn--danger" data-action="delete" title="削除">🗑</button>
+          </div>
+        </div>`;
+    }).join('');
+    
+    // Attach handlers
+    body.querySelectorAll('.saved-item').forEach(item => {
+      const id = item.dataset.designId;
+      const design = list.find(d => d.id === id);
+      
+      item.querySelector('[data-action="open"]').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        openSavedDesign(design);
+      });
+      item.querySelector('[data-action="rename"]').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const newName = prompt('新しい名前を入力してください', design.name);
+        if(newName && newName.trim()){
+          design.name = newName.trim();
+          design.updatedAt = Date.now();
+          persistSavedList(list);
+          if(currentDesignId === design.id){
+            currentDesignName = design.name;
+            updateCurrentIndicator();
+          }
+          openListModal(); // 再描画
+          showToast('名前を変更したで');
+        }
+      });
+      item.querySelector('[data-action="delete"]').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(confirm(`「${design.name}」を削除しますか？`)){
+          const newList = list.filter(d => d.id !== id);
+          persistSavedList(newList);
+          if(currentDesignId === id){
+            currentDesignId = null;
+            currentDesignName = null;
+            updateCurrentIndicator();
+          }
+          openListModal(); // 再描画
+          showToast('削除したで');
+        }
+      });
+      // 行クリックでも開く
+      item.addEventListener('click', ()=>openSavedDesign(design));
+    });
+  }
+  
+  document.getElementById('list-modal-bg').classList.add('is-shown');
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// URLハッシュからデザイン復元
+function restoreFromHash(){
+  const hash = location.hash;
+  if(!hash.includes('design=')) return null;
+  const m = hash.match(/design=([^&]+)/);
+  const tm = hash.match(/tpl=([^&]+)/);
+  if(!m) return null;
+  const id = m[1];
+  const list = loadSavedList();
+  const design = list.find(d => d.id === id);
+  if(design){
+    currentDesignId = design.id;
+    currentDesignName = design.name;
+    if(tm) currentTemplate = tm[1];
+    return design;
+  }
+  return null;
+}
+
+/* ============ INIT ============ */
+function init(){
+  // ★ v9: 起動のたびに「位置・スタイル・自由要素」を完全削除
+  // テキストの編集内容と画像（写真スロット・ロゴ）・背景はキープ
+  try{
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    let cleaned = false;
+    TEMPLATES.forEach(t=>{
+      if(data[t]){
+        if(data[t].elementStyles){delete data[t].elementStyles; cleaned=true}
+        if(data[t].draggedPositions){delete data[t].draggedPositions; cleaned=true}
+        if(data[t].freeImages && data[t].freeImages.length){delete data[t].freeImages; cleaned=true}
+        if(data[t].freeTexts && data[t].freeTexts.length){delete data[t].freeTexts; cleaned=true}
+      }
+    });
+    if(cleaned){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      console.log('v9: 壊れた位置データを毎回掃除');
+    }
+  }catch(e){console.warn(e)}
+  
+  // Generate stable IDs for all elements first
+  document.querySelectorAll('.tpl').forEach(tpl=>{
+    const tplId = tpl.dataset.templateId;
+    tpl.querySelectorAll('*').forEach((el,idx)=>{
+      el.dataset.elId = `${tplId}-el-${idx}`;
+      // ★ 起動時：壊れたインラインstyleを強制クリア（保存データから復元される前にリセット）
+      // ただし、テンプレートの装飾要素のオリジナルstyleは保持したいので、
+      // 編集可能要素・スロット要素のみ対象
+      if(el.hasAttribute('contenteditable') || el.classList.contains('photo-slot') || el.classList.contains('logo-slot')){
+        el.removeAttribute('style');
+        el.classList.remove('is-positioned');
+      }
+    });
+  });
+  
+  attachTextInputHandlers();
+  attachPhotoHandlers();
+  attachLogoHandlers();
+  makeSelectable();
+  enableRectSelection();
+  
+  // Make all editable text & slots draggable
+  document.querySelectorAll('.tpl [contenteditable="true"], .tpl .photo-slot, .tpl .logo-slot').forEach(el=>{
+    makeDraggable(el);
+  });
+  
+  buildBgPresets();
+  restoreState();
+  
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>showTemplate(btn.dataset.template));
+  });
+  
+  // Header actions
+  document.getElementById('btn-download').addEventListener('click', downloadAsPNG);
+  document.getElementById('btn-reset').addEventListener('click',()=>{
+    document.getElementById('modal-bg').classList.add('is-shown');
+  });
+  document.getElementById('modal-cancel').addEventListener('click',()=>{
+    document.getElementById('modal-bg').classList.remove('is-shown');
+  });
+  document.getElementById('modal-confirm').addEventListener('click', resetCurrent);
+  document.getElementById('modal-bg').addEventListener('click',(e)=>{
+    if(e.target.id==='modal-bg') document.getElementById('modal-bg').classList.remove('is-shown');
+  });
+  
+  // 全初期化（テンプレートだけ。保存済みデザインは残す）
+  document.getElementById('btn-reset-all').addEventListener('click',()=>{
+    if(confirm('全テンプレートを工場出荷状態に戻しますか？\n\n（保存済みデザインは残ります）')){
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+  });
+  
+  // SAVE button
+  document.getElementById('btn-save').addEventListener('click', openSaveDialog);
+  document.getElementById('save-cancel').addEventListener('click',()=>{
+    document.getElementById('save-modal-bg').classList.remove('is-shown');
+  });
+  document.getElementById('save-confirm').addEventListener('click', executeSave);
+  document.getElementById('save-modal-bg').addEventListener('click',(e)=>{
+    if(e.target.id==='save-modal-bg') document.getElementById('save-modal-bg').classList.remove('is-shown');
+  });
+  document.getElementById('save-name-input').addEventListener('keydown',(e)=>{
+    if(e.key==='Enter') executeSave();
+  });
+  
+  // SAVED LIST
+  document.getElementById('btn-saved-list').addEventListener('click', openListModal);
+  document.getElementById('list-close').addEventListener('click',()=>{
+    document.getElementById('list-modal-bg').classList.remove('is-shown');
+  });
+  document.getElementById('list-modal-bg').addEventListener('click',(e)=>{
+    if(e.target.id==='list-modal-bg') document.getElementById('list-modal-bg').classList.remove('is-shown');
+  });
+  
+  // Current design indicator close
+  document.getElementById('current-close').addEventListener('click', clearCurrentDesign);
+  
+  // ハッシュからデザイン復元
+  const designFromHash = restoreFromHash();
+  if(designFromHash){
+    updateCurrentIndicator();
+  }
+  
+  // Add image
+  document.getElementById('btn-add-image').addEventListener('click',()=>{
+    document.getElementById('add-image-input').click();
+  });
+  document.getElementById('add-image-input').addEventListener('change',(e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const r = new FileReader();
+    r.onload = (ev)=>{
+      const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+      const newEl = createFreeImage(currentTemplate, {
+        src: ev.target.result,
+        x: tpl.offsetWidth/2 - 150, y: tpl.offsetHeight/2 - 150,
+        w: 300, h: 300,
+      });
+      saveFreeItems(currentTemplate);
+      if(newEl) selectElement(newEl);
+      showToast('画像追加！ドラッグで移動・角●でリサイズ・上↻で回転');
+    };
+    r.readAsDataURL(file);
+    e.target.value = '';
+  });
+  
+  // Add text
+  document.getElementById('btn-add-text').addEventListener('click',()=>{
+    const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+    const newEl = createFreeText(currentTemplate, {
+      x: tpl.offsetWidth/2 - 100, y: tpl.offsetHeight/2 - 30,
+      w: 200, h: 60,
+      html: 'テキストを入力',
+      fontSize: '24px', color: '#1b7373', fontWeight: '500',
+    });
+    saveFreeItems(currentTemplate);
+    if(newEl) selectElement(newEl);
+    showToast('テキスト追加！ダブルクリックで編集');
+  });
+  
+  // ★ Shape buttons
+  function addShape(shapeType){
+    const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+    if(!tpl) return;
+    const el = document.createElement('div');
+    el.className = 'free-shape selectable';
+    el.dataset.shape = shapeType;
+    let w = 200, h = 200;
+    if(shapeType === 'line'){ w = 300; h = 4; }
+    if(shapeType === 'line-v'){ w = 4; h = 300; }
+    el.style.cssText = `position:absolute;left:${tpl.offsetWidth/2 - w/2}px;top:${tpl.offsetHeight/2 - h/2}px;width:${w}px;height:${h}px;`;
+    
+    // Add resize/delete handles
+    el.innerHTML = `
+      <button class="fi-handle" title="リサイズ"></button>
+      <button class="fi-delete" title="削除">×</button>
+      <button class="fi-rotate" title="回転">↻</button>`;
+    
+    tpl.appendChild(el);
+    makeDraggable(el);
+    saveFreeItems(currentTemplate);
+    selectElement(el);
+    showToast(`${shapeType}追加！色も右パネルで変えられるで`);
+  }
+  
+  document.getElementById('btn-add-rect').addEventListener('click',()=>addShape('rect'));
+  document.getElementById('btn-add-circle').addEventListener('click',()=>addShape('circle'));
+  document.getElementById('btn-add-line').addEventListener('click',()=>addShape('line'));
+  
+  // Background
+  document.getElementById('btn-set-bg').addEventListener('click',(e)=>{
+    e.stopPropagation();
+    toggleBgMenu(e.target);
+  });
+  document.getElementById('btn-clear-bg').addEventListener('click',()=>{
+    applyBackground(currentTemplate, null);
+    setTplData(currentTemplate,'background',null);
+    showToast('背景クリア');
+  });
+  
+  // ★ 全選択
+  document.getElementById('btn-select-all').addEventListener('click',()=>{
+    const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+    if(!tpl) return;
+    // 既存選択クリア
+    multiSelected.forEach(e=>e.classList.remove('is-selected'));
+    multiSelected = [];
+    if(selectedElement){ selectedElement.classList.remove('is-selected'); selectedElement = null; }
+    // 全要素を multiSelected に
+    const all = tpl.querySelectorAll('.free-image, .free-text, .free-shape, .photo-slot, .logo-slot, [contenteditable="true"]');
+    all.forEach(el=>{
+      if(el.offsetParent === null) return; // 非表示はスキップ
+      multiSelected.push(el);
+      el.classList.add('is-selected');
+    });
+    if(multiSelected.length >= 2){
+      safeRun('複数選択パネル', ()=>buildMultiPanel());
+      if(window.innerWidth <= 1024){
+        document.getElementById('dock').classList.add('is-shown');
+        document.getElementById('dock-backdrop').classList.add('is-shown');
+      }
+      showToast(`${multiSelected.length}個 選択したで`);
+    }
+  });
+  
+  // ★ 選択解除
+  document.getElementById('btn-deselect').addEventListener('click',()=>{
+    deselectAll();
+  });
+  document.getElementById('btn-upload-bg').addEventListener('click',()=>{
+    document.getElementById('bg-file-input').click();
+  });
+  document.getElementById('bg-file-input').addEventListener('change',(e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const r = new FileReader();
+    r.onload = (ev)=>{
+      applyBackground(currentTemplate, ev.target.result);
+      setTplData(currentTemplate,'background',ev.target.result);
+      showToast('背景画像設定🎨');
+      document.getElementById('bg-menu').classList.remove('is-shown');
+      bgMenuVisible = false;
+    };
+    r.readAsDataURL(file);
+    e.target.value = '';
+  });
+  
+  // Click outside to deselect / close menus
+  document.addEventListener('click',(e)=>{
+    if(!e.target.closest('#bg-menu') && !e.target.closest('#btn-set-bg')){
+      document.getElementById('bg-menu').classList.remove('is-shown');
+      bgMenuVisible = false;
+    }
+    // Deselect if clicked outside templates
+    if(!e.target.closest('.tpl') && !e.target.closest('.dock') && !e.target.closest('.toolpanel')){
+      // Don't deselect when clicking buttons in app
+      if(!e.target.closest('.app-header')) deselectAll();
+    }
+  });
+  
+  // Initial display
+  showTemplate('menu');
+  
+  // モバイル：閉じるボタン＆バックドロップ
+  document.getElementById('dock-close').addEventListener('click', closeDockOnly);
+  document.getElementById('dock-backdrop').addEventListener('click', closeDockOnly);
+  
+  window.addEventListener('resize', fitToView);
+  setTimeout(fitToView, 100);
+  setTimeout(fitToView, 500);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitToView);
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
+}else{
+  init();
+}
+</script>
+</body>
+</html>
