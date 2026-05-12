@@ -1758,8 +1758,11 @@ function moveElement(el, dir, step){
 }
 
 function resizeElement(el, action){
-  const isFree = el.classList.contains('free-image') || el.classList.contains('free-text');
-  if(!isFree && !el.classList.contains('is-positioned')) return;
+  const isFree = el.classList.contains('free-image') || el.classList.contains('free-text') || el.classList.contains('free-shape');
+  // ★ 通常要素は is-positioned に変換してリサイズ可能にする
+  if(!isFree && !el.classList.contains('is-positioned')){
+    convertToPositioned(el);
+  }
   
   let w = parseFloat(el.style.width) || el.offsetWidth;
   let h = parseFloat(el.style.height) || el.offsetHeight;
