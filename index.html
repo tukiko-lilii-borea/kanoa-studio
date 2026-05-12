@@ -1160,8 +1160,51 @@ input,select{font-family:inherit}
 
 <script>
 /* ===================================================================
-   KANOA Studio v3 - Pro Design Tool
+   KANOA Studio - Pro Design Tool
    =================================================================== */
+
+// ★ デバッグ：エラーを画面に大きく表示
+(function(){
+  function showErr(title, detail, src){
+    try{
+      const id='kanoa-err-'+Date.now();
+      const div = document.createElement('div');
+      div.id = id;
+      div.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;background:#9b2c2c;color:#fff;padding:12px 14px;z-index:99999;font-size:12px;font-family:ui-monospace,monospace;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.4);line-height:1.5;word-break:break-all;max-height:50vh;overflow:auto;';
+      div.innerHTML = '<div style="font-size:14px;font-weight:bold;margin-bottom:6px">⚠️ '+title+'</div>'+
+        '<div>'+detail+'</div>'+
+        (src ? '<div style="margin-top:6px;opacity:.8;font-size:11px">'+src+'</div>' : '')+
+        '<button onclick="document.getElementById(\''+id+'\').remove()" style="float:right;margin-top:8px;background:#fff;color:#9b2c2c;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:bold;cursor:pointer">閉じる</button>';
+      document.body.appendChild(div);
+    }catch(_){}
+  }
+  window.addEventListener('error', function(e){
+    // 拡張機能関係は無視
+    if((e.message||'').includes('asynchronous response')) return;
+    if((e.message||'').includes('extension')) return;
+    showErr('JSエラー', (e.message||'?'), (e.filename ? e.filename.split('/').pop() : '?')+':'+(e.lineno||'?'));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    const r = e.reason;
+    if(r && (String(r).includes('asynchronous response') || String(r).includes('extension'))) return;
+    showErr('Promiseエラー', r ? (r.message||String(r)) : '?', '');
+  });
+})();
+
+// ★ 主要関数の呼び出しを安全化（try-catchで囲む）
+function safeRun(label, fn){
+  try{ return fn(); }
+  catch(e){
+    try{
+      const div = document.createElement('div');
+      div.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;background:#c2410c;color:#fff;padding:12px;z-index:99999;font-size:12px;font-family:ui-monospace,monospace;border-radius:8px;line-height:1.4;word-break:break-all;';
+      div.innerHTML = '⚠️ '+label+' で失敗<br>'+e.message+'<br><small style="opacity:.7">'+(e.stack||'').split('\n')[1]+'</small>'+
+        '<button onclick="this.parentNode.remove()" style="float:right;background:#fff;color:#c2410c;border:none;border-radius:4px;padding:2px 8px;margin-left:8px;font-size:11px;font-weight:bold;cursor:pointer">×</button>';
+      document.body.appendChild(div);
+    }catch(_){}
+    console.error('safeRun:', label, e);
+  }
+}
 
 const STORAGE_KEY = 'kanoa-studio-v3';
 const TEMPLATES = ['menu','menu2','women','men','referral'];
@@ -1246,7 +1289,7 @@ function selectElement(el){
   }
   selectedElement = el;
   el.classList.add('is-selected');
-  buildPropertiesPanel(el);
+  safeRun('プロパティパネル構築', ()=>buildPropertiesPanel(el));
   if(window.innerWidth <= 1024){
     document.getElementById('dock').classList.add('is-shown');
     document.getElementById('dock-backdrop').classList.add('is-shown');
@@ -1481,7 +1524,7 @@ function buildPropertiesPanel(el){
   }, 0);
   
   // Attach handlers
-  attachPropertyHandlers(el);
+  safeRun('ハンドラ登録', ()=>attachPropertyHandlers(el));
 }
 
 function makeGroup(label, value, content){
