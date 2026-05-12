@@ -1286,6 +1286,109 @@ function makeSelectable(){
   });
 }
 
+// ★ ドラッグ範囲選択（空白部分をドラッグして矩形で囲んだ要素を複数選択）
+function enableRectSelection(){
+  document.querySelectorAll('.tpl').forEach(tpl=>{
+    if(tpl.dataset.rectSelBound) return;
+    tpl.dataset.rectSelBound = '1';
+    
+    let startX, startY, rectEl, isActive = false;
+    
+    tpl.addEventListener('pointerdown',(e)=>{
+      // 空白部分のみ反応（要素の上は対象外）
+      const t = e.target;
+      const isBlank = t === tpl || t.classList?.contains('bg-layer') || 
+                      t.classList?.contains('tpl-menu__divider') ||
+                      t.tagName === 'DIV' && !t.closest('.free-image,.free-text,.free-shape,.photo-slot,.logo-slot,[contenteditable="true"],.tpl-menu__item,.tpl-menu__header,.tpl-menu__section,.tpl-menu__column');
+      
+      // 空白を厳密に判定するため、もっと簡単に：直接tpl/bg-layerだけ
+      if(t !== tpl && !t.classList?.contains('bg-layer')) return;
+      
+      const tplRect = tpl.getBoundingClientRect();
+      const scale = tpl.offsetWidth / tplRect.width;
+      startX = (e.clientX - tplRect.left) * scale;
+      startY = (e.clientY - tplRect.top) * scale;
+      isActive = true;
+      
+      rectEl = document.createElement('div');
+      rectEl.className = 'rect-selection';
+      rectEl.style.cssText = `position:absolute;left:${startX}px;top:${startY}px;width:0;height:0;border:2px dashed #1b7373;background:rgba(184,221,220,.18);z-index:99998;pointer-events:none;`;
+      tpl.appendChild(rectEl);
+      
+      e.preventDefault();
+    });
+    
+    document.addEventListener('pointermove',(e)=>{
+      if(!isActive || !rectEl) return;
+      const tplRect = tpl.getBoundingClientRect();
+      const scale = tpl.offsetWidth / tplRect.width;
+      const x = (e.clientX - tplRect.left) * scale;
+      const y = (e.clientY - tplRect.top) * scale;
+      const minX = Math.min(startX, x), maxX = Math.max(startX, x);
+      const minY = Math.min(startY, y), maxY = Math.max(startY, y);
+      rectEl.style.left = minX + 'px';
+      rectEl.style.top = minY + 'px';
+      rectEl.style.width = (maxX - minX) + 'px';
+      rectEl.style.height = (maxY - minY) + 'px';
+    });
+    
+    document.addEventListener('pointerup',(e)=>{
+      if(!isActive || !rectEl) return;
+      isActive = false;
+      
+      const tplRect = tpl.getBoundingClientRect();
+      const scale = tpl.offsetWidth / tplRect.width;
+      const x = (e.clientX - tplRect.left) * scale;
+      const y = (e.clientY - tplRect.top) * scale;
+      const w = Math.abs(x - startX);
+      const h = Math.abs(y - startY);
+      
+      // 矩形がそれなりに大きい場合のみ範囲選択（小さすぎたら単なるクリック）
+      if(w > 30 && h > 30){
+        const minX = Math.min(startX, x), maxX = Math.max(startX, x);
+        const minY = Math.min(startY, y), maxY = Math.max(startY, y);
+        
+        // 既存選択クリア
+        multiSelected.forEach(el=>el.classList.remove('is-selected'));
+        multiSelected = [];
+        if(selectedElement){ selectedElement.classList.remove('is-selected'); selectedElement = null; }
+        
+        // 重なる要素を探す
+        const candidates = tpl.querySelectorAll('.free-image, .free-text, .free-shape, .photo-slot, .logo-slot, [contenteditable="true"]');
+        candidates.forEach(el=>{
+          if(el.offsetParent === null) return;
+          const er = el.getBoundingClientRect();
+          const erLeft = (er.left - tplRect.left) * scale;
+          const erTop = (er.top - tplRect.top) * scale;
+          const erRight = (er.right - tplRect.left) * scale;
+          const erBottom = (er.bottom - tplRect.top) * scale;
+          // 矩形と重なるかチェック
+          if(erRight >= minX && erLeft <= maxX && erBottom >= minY && erTop <= maxY){
+            multiSelected.push(el);
+            el.classList.add('is-selected');
+          }
+        });
+        
+        if(multiSelected.length >= 2){
+          safeRun('複数選択パネル', ()=>buildMultiPanel());
+          if(window.innerWidth <= 1024){
+            document.getElementById('dock').classList.add('is-shown');
+            document.getElementById('dock-backdrop').classList.add('is-shown');
+          }
+          showToast(`${multiSelected.length}個 選択したで`);
+        }else if(multiSelected.length === 1){
+          const el = multiSelected[0];
+          multiSelected = [];
+          selectElement(el);
+        }
+      }
+      
+      rectEl.remove();
+      rectEl = null;
+    });
+  });
+}
+
 // ★ 複数選択の状態
 let multiSelected = [];
 
@@ -1914,6 +2017,19 @@ function convertToPositioned(el){
   const x = (elRect.left - tplRect.left) * scale;
   const y = (elRect.top - tplRect.top) * scale;
   const w = el.offsetWidth, h = el.offsetHeight;
+  
+  // ★ レイアウトを保持するためplaceholderを挿入
+  // （ロゴや見出しを動かしてもまわりの文字が詰まらないようにする）
+  if(!el.dataset.placeholderInserted && el.parentNode){
+    const ph = document.createElement('div');
+    ph.className = 'pos-placeholder';
+    const cs = window.getComputedStyle(el);
+    ph.style.cssText = `width:${w}px;height:${h}px;display:${cs.display === 'inline' || cs.display === 'inline-block' ? 'inline-block' : 'block'};margin:${cs.margin};flex:${cs.flex || ''};pointer-events:none;visibility:hidden`;
+    ph.dataset.placeholderFor = getElementId(el);
+    el.parentNode.insertBefore(ph, el);
+    el.dataset.placeholderInserted = '1';
+  }
+  
   el.classList.add('is-positioned');
   el.style.left = x + 'px';
   el.style.top = y + 'px';
@@ -2073,6 +2189,13 @@ function resetPosition(el){
   el.style.top = '';
   el.style.width = '';
   el.style.height = '';
+  // ★ placeholder削除
+  if(el.dataset.placeholderInserted){
+    const elId = getElementId(el);
+    const ph = el.parentNode?.querySelector(`.pos-placeholder[data-placeholder-for="${CSS.escape(elId)}"]`);
+    if(ph) ph.remove();
+    delete el.dataset.placeholderInserted;
+  }
   const tpl = el.closest('.tpl');
   if(tpl){
     const elId = getElementId(el);
@@ -2977,6 +3100,7 @@ function init(){
   attachPhotoHandlers();
   attachLogoHandlers();
   makeSelectable();
+  enableRectSelection();
   
   // Make all editable text & slots draggable
   document.querySelectorAll('.tpl [contenteditable="true"], .tpl .photo-slot, .tpl .logo-slot').forEach(el=>{
