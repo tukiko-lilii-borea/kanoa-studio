@@ -1817,6 +1817,16 @@ function buildPropertiesPanel(el){
   if(el.dataset.wasEditable === '1'){
     actions += `<button class="prop-btn-full" data-action="edit-text" style="margin-top:5px;background:linear-gradient(135deg,#2a9999,#1b7373);color:#fff;border:none">✏ 文字を編集</button>`;
   }
+  // ★ メニュー項目を選択中 → 「同じ形式で追加」ボタン
+  const menuItem = el.closest('.tpl-menu__item');
+  if(menuItem){
+    actions += `<button class="prop-btn-full" data-action="add-menu-item" style="margin-top:5px;background:linear-gradient(135deg,#d4b687,#b8975f);color:#fff;border:none">➕ メニュー項目を追加</button>`;
+  }
+  // ★ メニューセクション（カテゴリ）の見出し選択中 → 「項目を追加」ボタン
+  const sectionTitle = el.classList.contains('tpl-menu__section-title') ? el : null;
+  if(sectionTitle){
+    actions += `<button class="prop-btn-full" data-action="add-item-to-section" style="margin-top:5px;background:linear-gradient(135deg,#d4b687,#b8975f);color:#fff;border:none">➕ このカテゴリに項目追加</button>`;
+  }
   actions += `<button class="prop-btn-full" data-action="duplicate" style="margin-top:5px">📋 複製</button>`;
   // ロゴ枠なら差し替えボタン
   if(el.classList.contains('logo-slot')){
@@ -1826,7 +1836,8 @@ function buildPropertiesPanel(el){
   if(el.classList.contains('photo-slot')){
     actions += `<button class="prop-btn-full" data-action="replace-photo" style="margin-top:5px">📷 写真を差し替え</button>`;
   }
-  actions += `<button class="prop-btn-full prop-btn-full--danger" data-action="delete" style="margin-top:5px">🗑 ${(isFreeImage||isFreeText||el.classList.contains('free-shape'))?'削除':'非表示'}</button>`;
+  const isMenuItem = !!el.closest('.tpl-menu__item') && !isFreeImage && !isFreeText && !el.classList.contains('free-shape');
+  actions += `<button class="prop-btn-full prop-btn-full--danger" data-action="delete" style="margin-top:5px">🗑 ${(isFreeImage||isFreeText||el.classList.contains('free-shape'))?'削除': (isMenuItem ? '項目を削除' : '非表示')}</button>`;
   body.appendChild(makeGroup('アクション', '', actions));
   
   // Set initial values
@@ -1983,6 +1994,16 @@ function attachPropertyHandlers(el){
         showToast('削除したで');
       }
     }else{
+      // ★ メニュー項目選択中なら、項目ごと削除
+      const menuItem = el.closest('.tpl-menu__item');
+      if(menuItem){
+        if(confirm('このメニュー項目を削除しますか？')){
+          menuItem.remove();
+          deselectAll();
+          showToast('項目を削除');
+        }
+        return;
+      }
       if(confirm('この要素を非表示にしますか？\n（「全初期化」で復活します）')){
         applyStyle(el, 'display', 'none');
         deselectAll();
@@ -2010,6 +2031,64 @@ function attachPropertyHandlers(el){
   // ★ Edit text mode
   document.querySelector('[data-action="edit-text"]')?.addEventListener('click',()=>{
     enableEditMode(el);
+  });
+  
+  // ★ メニュー項目を追加（選択中の項目の直後にコピー）
+  document.querySelector('[data-action="add-menu-item"]')?.addEventListener('click',()=>{
+    const item = el.closest('.tpl-menu__item');
+    if(!item) return;
+    const newItem = item.cloneNode(true);
+    // contenteditable=false にしてある状態をリセット（新要素は再初期化される）
+    newItem.querySelectorAll('[contenteditable]').forEach(ce=>{
+      ce.removeAttribute('data-text-bound');
+      ce.removeAttribute('data-draggable-bound');
+      ce.removeAttribute('data-selectable-bound');
+      ce.removeAttribute('data-was-editable');
+      ce.setAttribute('contenteditable','true');
+    });
+    // 内容を「新規項目」っぽくクリア
+    const nameEl = newItem.querySelector('.tpl-menu__item-name');
+    if(nameEl) nameEl.textContent = '新しいメニュー名';
+    const priceEl = newItem.querySelector('.tpl-menu__item-price');
+    if(priceEl) priceEl.innerHTML = '0<small>円</small>';
+    item.insertAdjacentElement('afterend', newItem);
+    // 再バインド
+    rebindNewElement(newItem);
+    selectElement(newItem.querySelector('.tpl-menu__item-name') || newItem);
+    showToast('項目追加したで！文字をクリックで編集');
+  });
+  
+  // ★ セクション見出し選択中 → そのカテゴリに項目追加
+  document.querySelector('[data-action="add-item-to-section"]')?.addEventListener('click',()=>{
+    const section = el.closest('.tpl-menu__section');
+    if(!section) return;
+    const itemsContainer = section.querySelector('.tpl-menu__items');
+    if(!itemsContainer) return;
+    const lastItem = itemsContainer.querySelector('.tpl-menu__item:last-child');
+    let newItem;
+    if(lastItem){
+      newItem = lastItem.cloneNode(true);
+      newItem.querySelectorAll('[contenteditable]').forEach(ce=>{
+        ce.removeAttribute('data-text-bound');
+        ce.removeAttribute('data-draggable-bound');
+        ce.removeAttribute('data-selectable-bound');
+        ce.removeAttribute('data-was-editable');
+        ce.setAttribute('contenteditable','true');
+      });
+      const nameEl = newItem.querySelector('.tpl-menu__item-name');
+      if(nameEl) nameEl.textContent = '新しいメニュー名';
+      const priceEl = newItem.querySelector('.tpl-menu__item-price');
+      if(priceEl) priceEl.innerHTML = '0<small>円</small>';
+    }else{
+      // セクションが空ならゼロから作る
+      newItem = document.createElement('div');
+      newItem.className = 'tpl-menu__item';
+      newItem.innerHTML = `<div class="tpl-menu__item-name" contenteditable="true">新しいメニュー名</div><span class="tpl-menu__item-staff" data-s="全員" contenteditable="true">全員</span><div class="tpl-menu__item-price" contenteditable="true">0<small>円</small></div>`;
+    }
+    itemsContainer.appendChild(newItem);
+    rebindNewElement(newItem);
+    selectElement(newItem.querySelector('.tpl-menu__item-name') || newItem);
+    showToast('項目追加したで！文字をクリックで編集');
   });
   
   // ★ Replace logo
@@ -2223,10 +2302,17 @@ function makeDraggable(el){
     el.addEventListener('click',(e)=>{
       if(e.target.classList?.contains('fi-handle') || e.target.classList?.contains('fi-delete') || e.target.classList?.contains('fi-rotate') ||
          e.target.classList?.contains('ft-handle') || e.target.classList?.contains('ft-delete') || e.target.classList?.contains('ft-rotate')) return;
-      // 編集モード中はスキップ
+      // 編集モード中はスキップ（編集中のテキスト操作を邪魔しない）
       if(el.getAttribute('contenteditable') === 'true' && el === document.activeElement) return;
       e.stopPropagation();
       selectElement(el);
+      // ★ 編集可能なテキスト要素ならシングルクリックで即編集モード（しほの要望）
+      if(el.dataset.wasEditable === '1' && el.getAttribute('contenteditable') !== 'true'){
+        // 写真・ロゴは編集モードに入らない（差し替え方式）
+        if(!el.classList.contains('logo-slot') && !el.classList.contains('photo-slot')){
+          enableEditMode(el);
+        }
+      }
     });
     return;
   }
@@ -2491,6 +2577,16 @@ function disableEditMode(el){
   if(el.dataset.wasEditable !== '1') return;
   el.setAttribute('contenteditable', 'false');
   el.classList.remove('is-editing');
+}
+
+// ★ 新しく作った要素に各種ハンドラを再バインド
+function rebindNewElement(container){
+  // contenteditable な要素全部に再バインド
+  container.querySelectorAll('[contenteditable="true"]').forEach(ce=>{
+    makeDraggable(ce);
+  });
+  // attachTextInputHandlersは全ページに対して動くので、再実行
+  attachTextInputHandlers();
 }
 
 /* ============ PHOTO SLOT ============ */
