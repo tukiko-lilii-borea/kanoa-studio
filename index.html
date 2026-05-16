@@ -167,7 +167,7 @@ input,select{font-family:inherit}
 .tpl{
   position:relative;background:#fff;
   font-family:'Noto Sans JP',sans-serif;
-  color:#2c3e3e;overflow:hidden;
+  color:#2c3e3e;overflow:visible;
   box-shadow:0 12px 40px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.06);
 }
 
@@ -795,6 +795,7 @@ input,select{font-family:inherit}
     </div>
     <div class="app-actions">
       <button class="btn btn--ghost" id="btn-undo" title="Ctrl+Z" style="font-size:16px">↩</button>
+      <button class="btn btn--ghost" id="btn-layers" title="レイヤー一覧">📋 レイヤー</button>
       <button class="btn btn--ghost" id="btn-saved-list">📂 保存済み</button>
       <button class="btn btn--ghost" id="btn-save">💾 保存</button>
       <button class="btn btn--ghost" id="btn-reset">リセット</button>
@@ -1781,6 +1782,7 @@ function buildPropertiesPanel(el){
   }
   
   // Universal: Position pad (NEW! - スマホでもドラッグ不要)
+  const isInSection = !!el.closest('.tpl-menu__section, .tpl-menu__items');
   body.appendChild(makeGroup('位置を動かす', '', `
     <div class="move-pad">
       <div class="move-pad-spacer"></div>
@@ -1798,7 +1800,15 @@ function buildPropertiesPanel(el){
       <button class="move-step-btn is-active" data-step="10">10px</button>
       <button class="move-step-btn" data-step="50">50px</button>
       <button class="move-step-btn" data-step="100">100px</button>
-    </div>`));
+    </div>
+    ${isInSection ? `
+    <div style="margin-top:10px;border-top:1px solid rgba(42,153,153,.15);padding-top:10px">
+      <div style="font-size:11px;color:#6b7e7e;margin-bottom:6px">このセクション以下も一緒に動かす</div>
+      <div style="display:flex;gap:6px">
+        <button class="prop-btn" data-move-section="up" style="flex:1">⬆ 上へ</button>
+        <button class="prop-btn" data-move-section="down" style="flex:1">⬇ 下へ</button>
+      </div>
+    </div>` : ''}`));
   
   // Universal: Size adjust (NEW!)
   if(isFreeImage || isFreeText){
@@ -1848,8 +1858,19 @@ function buildPropertiesPanel(el){
   
   // Opacity
   const curOpacity = Math.round(parseFloat(window.getComputedStyle(el).opacity) * 100);
-  body.appendChild(makeGroup('不透明度', curOpacity+'%', `
-    <input type="range" class="prop-range" id="prop-opacity" min="0" max="100" value="${curOpacity}">`));
+  body.appendChild(makeGroup('🌫 透明度', curOpacity+'%', `
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+      <button class="prop-btn" data-opacity="-25" style="padding:6px 10px;flex-shrink:0">薄く −</button>
+      <input type="range" class="prop-range" id="prop-opacity" min="0" max="100" value="${curOpacity}" style="flex:1">
+      <button class="prop-btn" data-opacity="+25" style="padding:6px 10px;flex-shrink:0">＋ 濃く</button>
+    </div>
+    <div style="display:flex;gap:4px">
+      <button class="prop-btn" data-opacity-set="0" style="flex:1;font-size:11px">透明</button>
+      <button class="prop-btn" data-opacity-set="25" style="flex:1;font-size:11px">25%</button>
+      <button class="prop-btn" data-opacity-set="50" style="flex:1;font-size:11px">50%</button>
+      <button class="prop-btn" data-opacity-set="75" style="flex:1;font-size:11px">75%</button>
+      <button class="prop-btn" data-opacity-set="100" style="flex:1;font-size:11px">不透明</button>
+    </div>`));
   
   // Rotation
   const transform = el.style.transform || '';
@@ -1946,14 +1967,15 @@ function attachPropertyHandlers(el){
   document.querySelectorAll('[data-bg]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const c = btn.dataset.bg;
-      applyStyle(el, 'background', c === 'transparent' ? 'none' : c);
-      applyStyle(el, 'backgroundImage', c === 'transparent' ? 'none' : '');
+      // ★ shorthandだとCSSのlinear-gradientが復活するので、分けて指定
+      applyStyle(el, 'backgroundColor', c === 'transparent' ? 'transparent' : c);
+      applyStyle(el, 'backgroundImage', 'none');
     });
   });
   const bgPicker = document.getElementById('prop-bg-custom');
   if(bgPicker) bgPicker.addEventListener('input',()=>{
-    applyStyle(el, 'background', bgPicker.value);
-    applyStyle(el, 'backgroundImage', '');
+    applyStyle(el, 'backgroundColor', bgPicker.value);
+    applyStyle(el, 'backgroundImage', 'none');
   });
   
   // ★ Text color buttons
@@ -2025,6 +2047,22 @@ function attachPropertyHandlers(el){
     const v = parseFloat(op.value)/100;
     applyStyle(el,'opacity',v);
     updateLabel(op, op.value+'%');
+  });
+  // ★ 透明度の+/-ボタン
+  document.querySelectorAll('[data-opacity]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const cur = Math.round(parseFloat(window.getComputedStyle(el).opacity) * 100);
+      const v = Math.max(0, Math.min(100, cur + parseInt(b.dataset.opacity)));
+      applyStyle(el,'opacity', v/100);
+      if(op){ op.value = v; updateLabel(op, v+'%'); }
+    });
+  });
+  document.querySelectorAll('[data-opacity-set]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const v = parseInt(b.dataset.opacitySet);
+      applyStyle(el,'opacity', v/100);
+      if(op){ op.value = v; updateLabel(op, v+'%'); }
+    });
   });
   
   // Rotation
@@ -2197,6 +2235,39 @@ function attachPropertyHandlers(el){
   });
   document.querySelectorAll('[data-move]').forEach(b=>{
     b.addEventListener('click',()=>moveElement(el, b.dataset.move, moveStep));
+  });
+  
+  // ★ 「このセクション以下も一緒に」ハンドラ
+  document.querySelectorAll('[data-move-section]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const dir = b.dataset.moveSection; // 'up' or 'down'
+      const amount = dir === 'down' ? moveStep : -moveStep;
+      
+      // 現在の要素が属するセクションを取得
+      const currentSection = el.closest('.tpl-menu__section');
+      if(!currentSection) return;
+      
+      // tpl-menu__grid の中のカラムを取得
+      const grid = currentSection.closest('.tpl-menu__grid > div');
+      if(!grid){
+        // gridのdivに直接属してない場合、セクション間隔だけ変える
+        const curMargin = parseFloat(currentSection.style.marginTop||'14');
+        currentSection.style.marginTop = Math.max(0, curMargin + amount) + 'px';
+        return;
+      }
+      
+      // currentSection 以降の同じカラム内のセクションをすべて移動
+      const allSections = Array.from(grid.querySelectorAll(':scope > .tpl-menu__section'));
+      const idx = allSections.indexOf(currentSection);
+      if(idx < 0) return;
+      
+      // idx以降のセクションのmargin-topを変える
+      allSections.slice(idx).forEach(sec=>{
+        const cur = parseFloat(sec.style.marginTop||'14');
+        sec.style.marginTop = Math.max(0, cur + amount) + 'px';
+      });
+      showToast(dir === 'down' ? '以下のセクションを下げたで' : '以下のセクションを上げたで');
+    });
   });
   
   /* ===== Size buttons ===== */
@@ -3397,6 +3468,110 @@ function executeSave(){
   document.getElementById('save-modal-bg').classList.remove('is-shown');
 }
 
+// ★ レイヤーモーダルを開く
+function openLayersModal(){
+  const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
+  if(!tpl) return;
+  
+  // 全要素を収集
+  const items = [];
+  // 自由配置要素（前面）
+  tpl.querySelectorAll('.free-image, .free-text, .free-shape').forEach((el,i)=>{
+    let name = '自由要素';
+    if(el.classList.contains('free-image')) name = '🖼 画像';
+    else if(el.classList.contains('free-text')) name = '📝 ' + (el.querySelector('[contenteditable]')?.textContent.slice(0,15) || 'テキスト');
+    else if(el.classList.contains('free-shape')) name = '⬜ ' + (el.dataset.shape || '図形');
+    items.push({el, name, type:'free', visible: el.style.display !== 'none'});
+  });
+  // ロゴ/写真
+  tpl.querySelectorAll('.logo-slot').forEach(el=>{
+    items.push({el, name:'🏷 ロゴ', type:'slot', visible: el.style.display !== 'none'});
+  });
+  tpl.querySelectorAll('.photo-slot').forEach(el=>{
+    items.push({el, name:'📷 写真', type:'slot', visible: el.style.display !== 'none'});
+  });
+  // セクション
+  tpl.querySelectorAll('.tpl-menu__section-title').forEach(el=>{
+    items.push({el, name:'📂 ' + el.textContent.trim(), type:'section', visible: el.closest('.tpl-menu__section').style.display !== 'none'});
+  });
+  // メニュー項目
+  tpl.querySelectorAll('.tpl-menu__item').forEach(el=>{
+    const nameText = el.querySelector('.tpl-menu__item-name')?.textContent.slice(0,20) || '項目';
+    items.push({el, name:'• ' + nameText, type:'item', visible: el.style.display !== 'none'});
+  });
+  
+  // モーダル本体
+  let modal = document.getElementById('layers-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'layers-modal';
+    modal.className = 'modal-bg';
+    modal.innerHTML = `
+      <div class="modal" style="max-width:480px;max-height:80vh;display:flex;flex-direction:column">
+        <div class="modal__head">
+          <h3 class="modal__title">📋 レイヤー一覧</h3>
+          <button class="modal__close" id="layers-modal-close">×</button>
+        </div>
+        <div class="modal__body" id="layers-modal-body" style="overflow-y:auto"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',(e)=>{
+      if(e.target === modal) modal.classList.remove('is-shown');
+    });
+    document.getElementById('layers-modal-close').addEventListener('click',()=>{
+      modal.classList.remove('is-shown');
+    });
+  }
+  
+  const body = document.getElementById('layers-modal-body');
+  body.innerHTML = items.map((item, i)=>`
+    <div class="layer-row" data-idx="${i}" style="display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid rgba(42,153,153,.12);cursor:pointer">
+      <button class="layer-vis" data-vis="${i}" title="表示/非表示" style="background:none;border:1px solid rgba(42,153,153,.3);border-radius:4px;padding:2px 6px;cursor:pointer;color:${item.visible?'#1b7373':'#999'};font-size:14px">${item.visible?'👁':'🚫'}</button>
+      <span style="flex:1;font-size:13px;color:${item.visible?'#2c3e3e':'#999'};text-decoration:${item.visible?'none':'line-through'}">${item.name}</span>
+      <span style="font-size:10px;color:#6b7e7e;background:rgba(42,153,153,.08);padding:2px 6px;border-radius:3px">${item.type}</span>
+    </div>
+  `).join('');
+  
+  // 各行のハンドラ
+  body.querySelectorAll('.layer-row').forEach(row=>{
+    const idx = parseInt(row.dataset.idx);
+    const item = items[idx];
+    row.addEventListener('click',(e)=>{
+      if(e.target.dataset.vis) return; // visibilityボタンは別処理
+      modal.classList.remove('is-shown');
+      // 該当要素を選択（特定の要素にスクロール）
+      item.el.scrollIntoView({behavior:'smooth', block:'center'});
+      setTimeout(()=>selectElement(item.el), 300);
+    });
+  });
+  body.querySelectorAll('[data-vis]').forEach(btn=>{
+    const idx = parseInt(btn.dataset.vis);
+    const item = items[idx];
+    btn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      pushUndo();
+      const target = item.type === 'section' ? item.el.closest('.tpl-menu__section') : item.el;
+      if(item.visible){
+        target.style.display = 'none';
+        item.visible = false;
+        btn.textContent = '🚫';
+        btn.style.color = '#999';
+      }else{
+        target.style.display = '';
+        item.visible = true;
+        btn.textContent = '👁';
+        btn.style.color = '#1b7373';
+      }
+      const span = btn.nextElementSibling;
+      span.style.color = item.visible ? '#2c3e3e' : '#999';
+      span.style.textDecoration = item.visible ? 'none' : 'line-through';
+    });
+  });
+  
+  modal.classList.add('is-shown');
+}
+
 // 一覧モーダルを開く
 function openListModal(){
   const list = loadSavedList();
@@ -3590,6 +3765,7 @@ function init(){
   
   // SAVED LIST
   document.getElementById('btn-undo').addEventListener('click', undo);
+  document.getElementById('btn-layers').addEventListener('click', openLayersModal);
   document.getElementById('btn-saved-list').addEventListener('click', openListModal);
   document.getElementById('list-close').addEventListener('click',()=>{
     document.getElementById('list-modal-bg').classList.remove('is-shown');
