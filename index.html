@@ -799,6 +799,7 @@ input,select{font-family:inherit}
       <button class="btn btn--ghost" id="btn-reset">リセット</button>
       <button class="btn btn--danger" id="btn-reset-all" title="全テンプレを工場出荷状態に">🔄 全初期化</button>
       <button class="btn btn--primary" id="btn-download">📥 PNG保存</button>
+      <button class="btn btn--primary" id="btn-download-hq" title="Canvaへの読み込み・印刷用・4倍高解像度" style="background:linear-gradient(135deg,#d4b687,#b8975f);border:none">🎨 高画質PNG（Canva用）</button>
     </div>
   </div>
 </header>
@@ -3111,28 +3112,34 @@ function fitToView(){
 }
 
 /* ============ PNG DOWNLOAD ============ */
-async function downloadAsPNG(){
+async function downloadAsPNG(scale = 2.5, label = ''){
   const tpl = document.querySelector(`.tpl[data-template-id="${currentTemplate}"]`);
   if(!tpl) return;
   
   document.querySelectorAll('.is-selected').forEach(el=>el.classList.remove('is-selected'));
   document.activeElement?.blur();
   
-  showToast('画像を生成中... 待ってな⏳');
+  const px = Math.round(tpl.offsetWidth * scale);
+  const py = Math.round(tpl.offsetHeight * scale);
+  showToast(`画像生成中... ${px}×${py}px ⏳`);
   document.body.classList.add('is-exporting');
   
   const frame = document.getElementById('canvas-frame');
   const orig = frame.style.transform;
   frame.style.transform = 'scale(1)';
-  await new Promise(r=>setTimeout(r,150));
+  await new Promise(r=>setTimeout(r,200));
   
   try{
-    const canvas = await html2canvas(tpl, {scale:2.5, useCORS:true, backgroundColor:'#fff', logging:false});
+    const canvas = await html2canvas(tpl, {
+      scale, useCORS:true, backgroundColor:'#fff', logging:false,
+      allowTaint:true, imageTimeout:15000
+    });
     const link = document.createElement('a');
-    link.download = `KANOA_${currentTemplate}_${new Date().toISOString().slice(0,10)}.png`;
+    const suffix = label ? `_${label}` : '';
+    link.download = `KANOA_${currentTemplate}${suffix}_${new Date().toISOString().slice(0,10)}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
-    showToast(`${TEMPLATE_NAMES[currentTemplate]}を保存したで！🎉`);
+    showToast(`${TEMPLATE_NAMES[currentTemplate]} ${px}×${py}px で保存したで！🎉`);
   }catch(err){
     console.error(err);
     showToast('保存失敗...');
@@ -3465,7 +3472,8 @@ function init(){
   });
   
   // Header actions
-  document.getElementById('btn-download').addEventListener('click', downloadAsPNG);
+  document.getElementById('btn-download').addEventListener('click', ()=>downloadAsPNG(2.5));
+  document.getElementById('btn-download-hq').addEventListener('click', ()=>downloadAsPNG(4, 'HQ'));
   document.getElementById('btn-reset').addEventListener('click',()=>{
     document.getElementById('modal-bg').classList.add('is-shown');
   });
